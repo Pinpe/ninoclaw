@@ -1,0 +1,12 @@
+{
+    "base_url":            "https://api.deepseek.com",
+    "model":               "deepseek-chat",
+    "cmd_start_tag":       "command:",
+    "home_path":           "/home/pinpe/文档/代码和项目/ninoclaw/home",
+    "shell":               "/usr/bin/fish",
+    "shell_config":        "/home/pinpe/.config/fish/config.fish",
+    "cmd_time_out":        60,
+    "context_len":         60,
+    "context_summary_len": 150,
+    "skill":               ["edit"]
+}
