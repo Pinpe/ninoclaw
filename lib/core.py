@@ -4,11 +4,14 @@ NinoClaw的核心API，集成了必要且实用的工具。
 
 
 from openai import OpenAI
-from lib import database
+from lib    import database
+from lib    import terminal
 import subprocess
 import textwrap
+import datetime
 
 
+@terminal.command_proceessed('pomi正在思考中...')
 def call_api(prompt: str) -> str:
     '''
     直接将**原始**的提示词发送给AI，是与AI交互的直接接口。
@@ -28,16 +31,14 @@ def call_api(prompt: str) -> str:
                 "content": prompt
             }]
         )
-        return response.choices[0].message.content
+        return str(response.choices[0].message.content)
     except Exception as err:
         return str(err)  # 当API调用出现问题，会直接返回错误信息，请注意捕获
 
 
-def create_prompt(user_cmd_input: str) -> str:
+def create_prompt() -> str:
     '''
     根据各种数据，整合和创建给AI的提示词。
-
-    :param user_input: 用户输入的消息内容。
     '''
     context_str = ''
     for i in database.load_data()['context']:
@@ -59,6 +60,10 @@ def create_prompt(user_cmd_input: str) -> str:
         `{database.load_data()['config']['home_path']}/MEMORY.md`
         请将重要信息（如用户姓名等）写入此文件，否则你会遗忘。
         你需要`定期检查并修订`该文件，但仅记录重要事项，琐碎内容可忽略。
+        - 日记文件：
+        `{database.load_data()['config']['home_path']}/diary/{datetime.date.today()}.md`
+        请将发生的所有事情全部写入此文件，否则你也会遗忘，你也需要`定期检查并修订`该文件，但所有事情都需要记录。
+        此外，整个`diary`目录都是你的日记，请随便查阅。
 
         [行为准则]
         - 信任自己：无需反复确认当前状态，避免陷入死循环。
@@ -76,14 +81,12 @@ def create_prompt(user_cmd_input: str) -> str:
         以下列表是你可以调用的技能，是额外提供的，被封装到了和普通命令一样方便，如果你想查看某个技能怎么用，只需`command:<技能名称> --help`
         {database.load_data()['config']['skill']}
 
-        **上下文：**
+        **上下文：（最后一条是用户输入，也可能是命令输出）**
         {context_str}
-
-        **用户输入或命令输出：**
-        {user_cmd_input}
     ''').strip()  # strip()用于去除首尾空白符
 
 
+@terminal.command_proceessed('pomi正在执行命令...')
 def command_exec(input: str, path: str) -> str:
     '''
     执行shell命令。

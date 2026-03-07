@@ -38,6 +38,18 @@ NinoClaw 是一个命令行界面的 AI 助手程序，它将大语言模型（L
    ```
    > **注意**：`gnureadline` 用于改善 Linux 下 `input()` 的体验，Windows 下可尝试安装 `pyreadline3` 或忽略（可能影响回退/历史功能）。
 
+3. 配置skill：
+   
+   手动在shell配置上添加别名，例如：
+   ```bash
+   alias edit "/home/pinpe/文档/代码和项目/ninoclaw/skill/edit.py"
+   alias web "python /home/pinpe/文档/代码和项目/ninoclaw/skill/web.py"
+   alias get-llm "python /home/pinpe/文档/代码和项目/ninoclaw/skill/get_llm.py"
+   alias vision "python /home/pinpe/文档/代码和项目/ninoclaw/skill/vision.py"
+   ```
+
+   此外，skill本身就是独立小程序，有些skill需要单独配置。
+
 ## 🚀 使用方法
 
 在项目目录下运行主程序：

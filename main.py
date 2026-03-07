@@ -1,10 +1,11 @@
 '''== 导入模块 =='''
-import gnureadline as readline  # 用于修复在Linux下input()函数不好用的问题
 from lib import database
+from lib import terminal
 from lib import core
 import rich.traceback
 import rich.markdown
 import rich.console
+import gnureadline  # 用于修复在Linux下input()函数不好用的问题
 import textwrap
 import time
 import sys
@@ -29,7 +30,9 @@ def handle_commend(ai_output:str) -> str:
     # 分割开始符号，分离出两个元素的列表，分别是AI输出内容[0]和要执行的命令[1]
     ai_output = ai_output.split(database.load_data()['config']['cmd_start_tag'])
     # 打印AI回复并记录上下文
-    # console.print(rich.markdown.Markdown(ai_output[0]))
+    console.print(rich.markdown.Markdown(ai_output[0]))
+    terminal.dividing_line()
+    # 这里加分割线，让输出更可读，下面的一个也是
     database.add_context(f'[{time.ctime()}][AI] >> {ai_output[0]} {database.load_data()['config']['cmd_start_tag']}{ai_output[1]}')
     # 处理cd命令，切换工作目录
     if 'cd' in ai_output[1]:
@@ -48,7 +51,7 @@ def title_and_history() -> None:
     '''
     打印主程序的标题和上下文。
     '''
-    print('\033[2J\033[H', end='')  # 清屏，注意这里用的自带的函数，而不是rich的
+    terminal.clear_screen()
     console.print(textwrap.dedent('''
         [blue]⣿⣆⠱⣝⡵⣝⢅⠙⣿⢕⢕⢕⢕⢝⣥⢒⠅⣿⣿⣿⡿⣳⣌⠪⡪⣡⢑[/blue]    [yellow]███╗   ██╗██╗███╗   ██╗ ██████╗  ██████╗██╗      █████╗ ██╗    ██╗[/yellow]
         [blue]⣿⣿⣦⠹⣳⣳⣕⢅⠈⢗⢕⢕⢕⢕⢕⢈⢆⠟⠋⠉⠁⠉⠉⠁⠈⠼⢐[/blue]    [yellow]████╗  ██║██║████╗  ██║██╔═══██╗██╔════╝██║     ██╔══██╗██║    ██║[/yellow]
@@ -57,11 +60,11 @@ def title_and_history() -> None:
         [blue]⡵⠟⠈⢀⣀⣀⡀⠉⢿⣿⣿⣿⣿⣿⣿⣿⣼⣿⢈⡋⠴⢿⡟⣡⡇⣿⡇[/blue]    [yellow]██║ ╚████║██║██║ ╚████║╚██████╔╝╚██████╗███████╗██║  ██║╚███╔███╔╝[/yellow]
         [blue]⠁⣠⣾⠟⡉⡉⡉⠻⣦⣻⣿⣿⣿⣿⣿⣿⣿⣿⣧⠸⣿⣦⣥⣿⡇⡿⣰[/blue]    [yellow]╚═╝  ╚═══╝╚═╝╚═╝  ╚═══╝ ╚═════╝  ╚═════╝╚══════╝╚═╝  ╚═╝ ╚══╝╚══╝ [/yellow]
         [blue]⢰⣿⡏⣴⣌⠈⣌⠡⠈⢻⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣬⣉⣉⣁⣄⢖⢕[/blue]
-        [blue]⢻⣿⡇⢙⠁⠴⢿⡟⣡⡆⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣷⣵[/blue]    [b green]版本：3.1.0[/b green]
-        [blue]⣄⣻⣿⣌⠘⢿⣷⣥⣿⠇⣿⣿⣿⣿⣿⣿⠛⠻⣿⣿⣿⣿⣿⣿⣿⣿⣿[/blue]    [b red]作者：Pinpe[/b red]
-        [blue]⢄⠻⣿⣟⠿⠦⠍⠉⣡⣾⣿⣿⣿⣿⣿⣿⢸⣿⣦⠙⣿⣿⣿⣿⣿⣿⣿[/blue]
-        [blue]⡑⣑⣈⣻⢗⢟⢞⢝⣻⣿⣿⣿⣿⣿⣿⣿⠸⣿⠿⠃⣿⣿⣿⣿⣿⣿⡿[/blue]    输入：[yellow]summary[/yellow] 压缩上下文    [yellow]clear[/yellow] 清除上下文
-        [blue]⡵⡈⢟⢕⢕⢕⢕⣵⣿⣿⣿⣿⣿⣿⣿⣿⣿⣶⣶⣿⣿⣿⣿⣿⠿⠋⣀[/blue]          [yellow]exit[/yellow]    退出
+        [blue]⢻⣿⡇⢙⠁⠴⢿⡟⣡⡆⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣷⣵[/blue]                        [b green]版本：3.2.0[/b green]      [b red]作者：Pinpe[/b red]
+        [blue]⣄⣻⣿⣌⠘⢿⣷⣥⣿⠇⣿⣿⣿⣿⣿⣿⠛⠻⣿⣿⣿⣿⣿⣿⣿⣿⣿[/blue]
+        [blue]⢄⠻⣿⣟⠿⠦⠍⠉⣡⣾⣿⣿⣿⣿⣿⣿⢸⣿⣦⠙⣿⣿⣿⣿⣿⣿⣿[/blue]    输入：[yellow]summary[/yellow] 压缩上下文    [yellow]clear[/yellow] 清除上下文
+        [blue]⡑⣑⣈⣻⢗⢟⢞⢝⣻⣿⣿⣿⣿⣿⣿⣿⠸⣿⠿⠃⣿⣿⣿⣿⣿⣿⡿[/blue]          [yellow]exit[/yellow]    退出
+        [blue]⡵⡈⢟⢕⢕⢕⢕⣵⣿⣿⣿⣿⣿⣿⣿⣿⣿⣶⣶⣿⣿⣿⣿⣿⠿⠋⣀[/blue]
     '''))
     # 如果发现有上下文（即上下文不为空），便把上下文打印出来
     if database.load_data()['context'] != []:
@@ -75,7 +78,7 @@ def user_input_box() -> str | None:
     用户的输入框，附带命令检查。
     '''
     try:
-        user_input = console.input('[black on cyan] 发送消息 [/black on cyan] >> ')
+        user_input = console.input(f'[black on cyan] 发送消息 [/black on cyan] >> ')
     # 如果用户按了Ctrl+C的话就退出，否则traceback就糊脸了
     except KeyboardInterrupt:
         sys.exit(0)
@@ -113,6 +116,8 @@ def user_input_box() -> str | None:
 if __name__ == '__main__':
     # 首先打印大标题和上下文
     title_and_history()
+    # 如果发现没有今天的日记，就创建一个
+    database.create_diary()
     # 开始大循环
     while True:
         # 当没有命令输出时，让用户输入，否则则代表有命令返回
@@ -122,12 +127,15 @@ if __name__ == '__main__':
             if user_cmd_input is None: continue
         database.add_context(f'[{time.ctime()}][{path}][用户或返回结果] >> {user_cmd_input}')
         # 将输入（无论是用户的还是命令返回）传递给AI
-        ai_output = core.call_api(core.create_prompt(user_cmd_input))
+        ai_output = core.call_api(core.create_prompt())
         # 如果发现AI需要执行命令
         if database.load_data()['config']['cmd_start_tag'] in ai_output:
             user_cmd_input = handle_commend(ai_output)
         # 如果不需要执行命令
         else:
+            # 直接输出 + 上下文
             console.print(rich.markdown.Markdown(ai_output))
+            terminal.dividing_line()
             database.add_context(f'[{time.ctime()}][AI] >> {ai_output}')
+            # 重置用户的输入
             user_cmd_input = None

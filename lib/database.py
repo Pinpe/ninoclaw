@@ -4,6 +4,7 @@ NinoClaw的文件管理API，用于对持久化和配置选项进行操作。
 
 
 import json
+import datetime
 
 
 def format_json_dump(content, file_path):
@@ -43,3 +44,16 @@ def add_context(new_context: str) -> None:
         del context_list[0]
     context_list.append(new_context)
     format_json_dump(context_list, 'database/context.json')
+
+
+def create_diary() -> None:
+    '''
+    判断有没有今天的日记，如果没有，创建今天的日记。
+    '''
+    # 先判断有没有今天的日记：打开今天的日记文件，如果无法打开代表没有创建
+    try:
+        open(f'home/diary/{datetime.date.today()}.md', mode='r', encoding='UTF-8').read()
+    # 如果没有，创建日记文件，并且写入日记空模板
+    except FileNotFoundError:
+        open(f'home/diary/{datetime.date.today()}.md', mode='w', encoding='UTF-8') \
+            .write(f'# {datetime.date.today()}.md\n\n这是今天的日记，请把今天发生的所有事写下来。')

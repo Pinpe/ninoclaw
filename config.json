@@ -1,6 +1,6 @@
 {
-    "base_url":            "https://api.deepseek.com",
-    "model":               "deepseek-chat",
+    "base_url":            "https://api.pearktrue.cn/v1/",
+    "model":               "MiniMax-M2.5",
     "cmd_start_tag":       "command:",
     "home_path":           "/home/pinpe/文档/代码和项目/ninoclaw/home",
     "shell":               "/usr/bin/fish",
@@ -8,5 +8,8 @@
     "cmd_time_out":        60,
     "context_len":         60,
     "context_summary_len": 150,
-    "skill":               ["edit"]
+    "skill":               ["edit（用于覆写文本文件）",
+                            "web（用于访问网站）",
+                            "get-llm（用于询问同类）",
+                            "vision（用于查看图片）"]
 }
