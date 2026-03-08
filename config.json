@@ -1,15 +1,16 @@
 {
     "base_url":            "https://api.pearktrue.cn/v1/",
     "model":               "MiniMax-M2.5",
-    "cmd_start_tag":       "command:",
+    "cmd_start_tag":       "[COMMAND]",
+    "cmd_end_tag":         "[/COMMAND]",
     "home_path":           "/home/pinpe/文档/代码和项目/ninoclaw/home",
     "shell":               "/usr/bin/fish",
     "shell_config":        "/home/pinpe/.config/fish/config.fish",
     "cmd_time_out":        60,
-    "context_len":         60,
+    "context_len":         35,
     "context_summary_len": 150,
-    "skill":               ["edit（用于覆写文本文件）",
-                            "web（用于访问网站）",
-                            "get-llm（用于询问同类）",
-                            "vision（用于查看图片）"]
+    "skill":               ["覆写文本文件：`edit \"<文本文件路径>\" \"<覆写内容（可多行）>\"`",
+                            "访问网站：`web \"<要访问的URL>\"`",
+                            "与同类交流：`get-llm \"<发送的消息>\"`",
+                            "查看图片：`vision \"<图片文件路径>\"`"]
 }

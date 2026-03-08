@@ -4,6 +4,7 @@ import os
 import textwrap
 from openai import OpenAI
 from openai import APIError, AuthenticationError, APIConnectionError
+import json
 
 # 初始化 Typer 应用
 app = typer.Typer(help="图片识别AI命令行工具，调用通义千问VL模型分析图片内容")
@@ -39,7 +40,7 @@ def get_vision_ai(img_base: str, prompt: str) -> str:
     :return: AI返回的识别结果
     '''
     # 从环境变量获取API Key（推荐方式，避免硬编码）
-    api_key = 'sk-d89da7cf404f4e69a4c21976fc44be0f'
+    api_key = api_key=json.load(open('/home/pinpe/文档/代码和项目/ninoclaw/env.json', encoding='UTF-8'))['vision_api_key']
     if not api_key:
         raise ValueError(
             "未找到API Key"

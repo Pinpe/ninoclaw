@@ -1,5 +1,7 @@
 import typer
 from openai import OpenAI
+import json
+
 
 # 创建 Typer 应用实例，用于构建 CLI 工具
 app = typer.Typer(
@@ -15,7 +17,7 @@ def call_api(prompt: str) -> str:
     '''
     try:
         client = OpenAI(
-            api_key='sk-0c57d746db7aaaf9ead403c53431eebe',
+            api_key=json.load(open('/home/pinpe/文档/代码和项目/ninoclaw/env.json', encoding='UTF-8'))['ai_api_key'],
             base_url='https://api.pearktrue.cn/v1/'
         )
         # 调用 OpenAI API

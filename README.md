@@ -24,7 +24,7 @@ NinoClaw 是一个命令行界面的 AI 助手程序，它将大语言模型（L
 
 1. 克隆仓库或下载源码：
    ```bash
-   git clone https://github.com/yourname/ninoclaw.git
+   git clone https://github.com/yourname/nino-claw.git
    cd ninoclaw
    ```
 

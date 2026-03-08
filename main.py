@@ -17,6 +17,7 @@ rich.traceback.install(show_locals=True)  # 初始化rich样式的traceback
 console        = rich.console.Console()   # 初始化rich的终端对象
 user_cmd_input = None
 path           = database.load_data()['config']['home_path']
+last_cmd       = None
 
 
 '''== 内部函数 =='''
@@ -26,18 +27,29 @@ def handle_commend(ai_output:str) -> str:
 
     :param ai_output: AI的输出。
     '''
-    global path, user_cmd_input
-    # 分割开始符号，分离出两个元素的列表，分别是AI输出内容[0]和要执行的命令[1]
-    ai_output = ai_output.split(database.load_data()['config']['cmd_start_tag'])
+    global path, user_cmd_input, last_cmd
+    # 分割开始标签，分离AI回复内容和命令部分
+    ai_content, cmd_part = ai_output.split(database.load_data()['config']['cmd_start_tag'], 1)
+    # 分割结束标签，只保留标签内的命令
+    cmd = cmd_part.split(database.load_data()['config']['cmd_end_tag'], 1)[0].strip()
     # 打印AI回复并记录上下文
-    console.print(rich.markdown.Markdown(ai_output[0]))
-    terminal.dividing_line()
-    # 这里加分割线，让输出更可读，下面的一个也是
-    database.add_context(f'[{time.ctime()}][AI] >> {ai_output[0]} {database.load_data()['config']['cmd_start_tag']}{ai_output[1]}')
+    console.print(rich.markdown.Markdown(ai_content))
+    terminal.dividing_line()  # 这里加分割线，让输出更可读，下面的一个也是
+    database.add_context(
+        f'[{time.ctime()}][AI] >> {ai_content}'
+        f'{database.load_data()['config']['cmd_start_tag']}'
+        f'{cmd}'
+        f'{database.load_data()['config']['cmd_end_tag']}'
+    )
+    # 判断AI的的命令是否与上一条命令相等，如果是就给AI返回个警告，不是就跳过，以免出现无限循环的问题
+    if cmd == last_cmd:
+        return '错误：不能执行与上一条相同的命令，如果需要执行，你可以给命令加入多余参数或注释。此机制是为了防止你陷入无限循环。'
+    # 校验通过后，即可放心更新last命令
+    last_cmd = cmd
     # 处理cd命令，切换工作目录
-    if 'cd' in ai_output[1]:
+    if 'cd' in cmd:
         # 去除掉cd、双引号和首尾空格，写在新路径变量
-        new_path = os.path.abspath(os.path.join(path, ai_output[1].replace('cd', '').replace('\"', '').strip()))
+        new_path = os.path.abspath(os.path.join(path, cmd.replace('cd', '').replace('\"', '').strip()))
         # 检查新目录是否是正确的，是的话就替代旧路径，切换目录，不是就报错
         if os.path.isdir(new_path):
             path = new_path
@@ -45,7 +57,7 @@ def handle_commend(ai_output:str) -> str:
         else:
             return f'错误：目录不存在：{new_path}'
     # 执行命令，返回执行结果
-    return core.command_exec(ai_output[1], path)
+    return core.command_exec(cmd, path)
 
 def title_and_history() -> None:
     '''
@@ -60,7 +72,7 @@ def title_and_history() -> None:
         [blue]⡵⠟⠈⢀⣀⣀⡀⠉⢿⣿⣿⣿⣿⣿⣿⣿⣼⣿⢈⡋⠴⢿⡟⣡⡇⣿⡇[/blue]    [yellow]██║ ╚████║██║██║ ╚████║╚██████╔╝╚██████╗███████╗██║  ██║╚███╔███╔╝[/yellow]
         [blue]⠁⣠⣾⠟⡉⡉⡉⠻⣦⣻⣿⣿⣿⣿⣿⣿⣿⣿⣧⠸⣿⣦⣥⣿⡇⡿⣰[/blue]    [yellow]╚═╝  ╚═══╝╚═╝╚═╝  ╚═══╝ ╚═════╝  ╚═════╝╚══════╝╚═╝  ╚═╝ ╚══╝╚══╝ [/yellow]
         [blue]⢰⣿⡏⣴⣌⠈⣌⠡⠈⢻⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣬⣉⣉⣁⣄⢖⢕[/blue]
-        [blue]⢻⣿⡇⢙⠁⠴⢿⡟⣡⡆⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣷⣵[/blue]                        [b green]版本：3.2.0[/b green]      [b red]作者：Pinpe[/b red]
+        [blue]⢻⣿⡇⢙⠁⠴⢿⡟⣡⡆⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣷⣵[/blue]                        [b green]版本：3.3.0[/b green]      [b red]作者：Pinpe[/b red]
         [blue]⣄⣻⣿⣌⠘⢿⣷⣥⣿⠇⣿⣿⣿⣿⣿⣿⠛⠻⣿⣿⣿⣿⣿⣿⣿⣿⣿[/blue]
         [blue]⢄⠻⣿⣟⠿⠦⠍⠉⣡⣾⣿⣿⣿⣿⣿⣿⢸⣿⣦⠙⣿⣿⣿⣿⣿⣿⣿[/blue]    输入：[yellow]summary[/yellow] 压缩上下文    [yellow]clear[/yellow] 清除上下文
         [blue]⡑⣑⣈⣻⢗⢟⢞⢝⣻⣿⣿⣿⣿⣿⣿⣿⠸⣿⠿⠃⣿⣿⣿⣿⣿⣿⡿[/blue]          [yellow]exit[/yellow]    退出
@@ -78,7 +90,11 @@ def user_input_box() -> str | None:
     用户的输入框，附带命令检查。
     '''
     try:
-        user_input = console.input(f'[black on cyan] 发送消息 [/black on cyan] >> ')
+        user_input = console.input(
+            f'[black on yellow] {time.ctime()} [/black on yellow]'
+            f'[black on cyan] {path} [/black on cyan][cyan][/cyan]\n'
+            '[green]▶[/green] '
+        )
     # 如果用户按了Ctrl+C的话就退出，否则traceback就糊脸了
     except KeyboardInterrupt:
         sys.exit(0)
@@ -128,8 +144,9 @@ if __name__ == '__main__':
         database.add_context(f'[{time.ctime()}][{path}][用户或返回结果] >> {user_cmd_input}')
         # 将输入（无论是用户的还是命令返回）传递给AI
         ai_output = core.call_api(core.create_prompt())
-        # 如果发现AI需要执行命令
-        if database.load_data()['config']['cmd_start_tag'] in ai_output:
+        # 如果发现AI需要执行命令（发现包含成对标签 ）
+        if database.load_data()['config']['cmd_start_tag'] in ai_output \
+            and database.load_data()['config']['cmd_end_tag'] in ai_output:
             user_cmd_input = handle_commend(ai_output)
         # 如果不需要执行命令
         else:

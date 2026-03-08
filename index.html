@@ -1,0 +1,460 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>NinoClaw - 终端里的AI少女助手</title>
+    <!-- 引入Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- 引入Font Awesome图标 -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <!-- 配置Tailwind自定义主题（Catppuccin Mocha配色） -->
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        // Catppuccin Mocha 配色
+                        rosewater: '#f5e0dc',
+                        flamingo: '#f2cdcd',
+                        pink: '#f5c2e7',
+                        mauve: '#cba6f7',
+                        red: '#f38ba8',
+                        maroon: '#eba0ac',
+                        peach: '#fab387',
+                        yellow: '#f9e2af',
+                        green: '#a6e3a1',
+                        teal: '#94e2d5',
+                        sky: '#89dceb',
+                        sapphire: '#74c7ec',
+                        blue: '#89b4fa',
+                        lavender: '#b4befe',
+                        text: '#cdd6f4',
+                        subtext1: '#bac2de',
+                        subtext0: '#a6adc8',
+                        overlay2: '#9399b2',
+                        overlay1: '#7f849c',
+                        overlay0: '#6c7086',
+                        surface2: '#585b70',
+                        surface1: '#45475a',
+                        surface0: '#313244',
+                        base: '#1e1e2e',
+                        mantle: '#181825',
+                        crust: '#11111b',
+                    },
+                    fontFamily: {
+                        mono: ['Fira Code', 'Consolas', 'Monaco', 'monospace'],
+                        sans: ['Inter', 'system-ui', 'sans-serif'],
+                    },
+                },
+            }
+        }
+    </script>
+    <!-- 自定义工具类 -->
+    <style type="text/tailwindcss">
+        @layer utilities {
+            .text-shadow-glow {
+                text-shadow: 0 0 8px rgba(203, 166, 247, 0.6);
+            }
+            .bg-gradient-mauve {
+                background: linear-gradient(135deg, #cba6f7 0%, #89b4fa 100%);
+            }
+            .transition-all-300 {
+                transition: all 300ms ease-in-out;
+            }
+        }
+    </style>
+    <style>
+        /* 全局样式 */
+        body {
+            scroll-behavior: smooth;
+        }
+        /* ASCII艺术样式 */
+        .ascii-art {
+            font-family: 'Fira Code', monospace;
+            white-space: pre;
+            line-height: 1.2;
+        }
+        /* 滚动条美化 */
+        ::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #181825;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #585b70;
+            border-radius: 4px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #cba6f7;
+        }
+    </style>
+</head>
+<body class="bg-base text-text font-sans antialiased">
+    <!-- 导航栏 -->
+    <header class="sticky top-0 z-50 bg-crust/90 backdrop-blur-sm border-b border-surface0">
+        <div class="container mx-auto px-4 py-3 flex justify-between items-center">
+            <a href="#" class="flex items-center gap-2">
+                <span class="text-mauve text-2xl font-bold text-shadow-glow">NinoClaw</span>
+            </a>
+            <nav class="hidden md:flex gap-6">
+                <a href="#features" class="text-subtext0 hover:text-mauve transition-all-300">功能</a>
+                <a href="#installation" class="text-subtext0 hover:text-mauve transition-all-300">安装</a>
+                <a href="#usage" class="text-subtext0 hover:text-mauve transition-all-300">使用</a>
+                <a href="#structure" class="text-subtext0 hover:text-mauve transition-all-300">结构</a>
+                <a href="https://github.com/Pinpe/nino-claw" target="_blank" class="flex items-center gap-1 text-subtext0 hover:text-mauve transition-all-300">
+                    <i class="fab fa-github"></i> GitHub
+                </a>
+            </nav>
+            <!-- 移动端菜单按钮 -->
+            <button id="menuBtn" class="md:hidden text-text hover:text-mauve transition-all-300">
+                <i class="fas fa-bars text-xl"></i>
+            </button>
+        </div>
+        <!-- 移动端菜单 -->
+        <div id="mobileMenu" class="md:hidden hidden bg-mantle border-b border-surface0">
+            <div class="container mx-auto px-4 py-2 flex flex-col gap-3">
+                <a href="#features" class="py-2 text-subtext0 hover:text-mauve transition-all-300">功能</a>
+                <a href="#installation" class="py-2 text-subtext0 hover:text-mauve transition-all-300">安装</a>
+                <a href="#usage" class="py-2 text-subtext0 hover:text-mauve transition-all-300">使用</a>
+                <a href="#structure" class="py-2 text-subtext0 hover:text-mauve transition-all-300">结构</a>
+                <a href="https://github.com/Pinpe/nino-claw" target="_blank" class="py-2 flex items-center gap-1 text-subtext0 hover:text-mauve transition-all-300">
+                    <i class="fab fa-github"></i> GitHub
+                </a>
+            </div>
+        </div>
+    </header>
+
+    <main>
+        <!-- 英雄区 -->
+        <section class="py-20 md:py-28 bg-gradient-to-b from-mantle to-base">
+            <div class="container mx-auto px-4 flex flex-col md:flex-row items-center gap-8">
+                <div class="w-full md:w-1/2 space-y-6">
+                    <h1 class="text-4xl md:text-5xl lg:text-6xl font-bold">
+                        <span class="text-mauve">NinoClaw</span>
+                        <span class="block text-2xl md:text-3xl mt-2 text-subtext1">终端里的AI少女助手</span>
+                    </h1>
+                    <p class="text-subtext0 text-lg">
+                        将大语言模型与系统命令执行能力结合，让活泼的虚拟少女 pomi 成为你终端里的贴心助手，帮你对话、执行命令、管理文件。
+                    </p>
+                    <div class="flex flex-wrap gap-4 pt-4">
+                        <a href="#installation" class="bg-mauve text-crust px-6 py-3 rounded-lg font-medium hover:bg-mauve/90 transition-all-300 shadow-lg shadow-mauve/20">
+                            开始使用
+                        </a>
+                        <a href="https://github.com/Pinpe/nino-claw" target="_blank" class="bg-surface0 text-text px-6 py-3 rounded-lg font-medium hover:bg-surface1 transition-all-300 flex items-center gap-2">
+                            <i class="fab fa-github"></i> 查看源码
+                        </a>
+                    </div>
+                </div>
+                <div class="w-full md:w-1/2 bg-crust rounded-xl p-4 border border-surface1 shadow-2xl shadow-crust/50">
+                    <div class="bg-base rounded-lg p-4 font-mono text-sm">
+                        <div class="text-green">➜ ~ python main.py</div>
+                        <div class="ascii-art text-pink mt-2">
+███╗   ██╗██╗███╗   ██╗ ██████╗ 
+████╗  ██║██║████╗  ██║██╔═══██╗
+██╔██╗ ██║██║██╔██╗ ██║██║   ██║
+██║╚██╗██║██║██║╚██╗██║██║   ██║
+██║ ╚████║██║██║ ╚████║╚██████╔╝
+╚═╝  ╚═══╝╚═╝╚═╝  ╚═══╝ ╚═════╝ 
+
+                        </div>
+                        <div class="text-lavender mt-2">pomi 🐾: 嗨～我是你的终端AI助手，有什么可以帮你的吗？</div>
+                        <div class="mt-2">
+                            <span class="text-yellow">>> </span>
+                            <span class="text-text">帮我列出当前目录的文件</span>
+                        </div>
+                        <div class="text-teal mt-1">pomi 🐾: 好的～这就为你执行命令 😜 command: ls -la</div>
+                        <div class="bg-surface0 rounded-md p-2 mt-1 text-subtext0">
+                            total 48<br>
+                            drwxr-xr-x  6 user  staff   192 Mar  8 10:00 .<br>
+                            drwxr-xr-x  5 user  staff   160 Mar  8 09:58 ..<br>
+                            -rw-r--r--  1 user  staff   120 Mar  8 09:59 main.py<br>
+                            -rw-r--r--  1 user  staff  2456 Mar  8 09:59 core.py
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- 功能特点区 -->
+        <section id="features" class="py-16 bg-base">
+            <div class="container mx-auto px-4">
+                <h2 class="text-3xl font-bold text-center mb-12">
+                    <span class="text-mauve">✨</span> 功能特点
+                </h2>
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+                    <!-- 功能卡片1 -->
+                    <div class="bg-mantle rounded-xl p-6 border border-surface0 hover:border-mauve/50 transition-all-300">
+                        <div class="text-mauve text-3xl mb-4">
+                            <i class="fas fa-comments"></i>
+                        </div>
+                        <h3 class="text-xl font-semibold mb-2">智能对话</h3>
+                        <p class="text-subtext0">基于 OpenAI API 兼容的模型，支持自定义模型和接口地址，和 pomi 轻松聊天。</p>
+                    </div>
+                    <!-- 功能卡片2 -->
+                    <div class="bg-mantle rounded-xl p-6 border border-surface0 hover:border-mauve/50 transition-all-300">
+                        <div class="text-pink text-3xl mb-4">
+                            <i class="fas fa-terminal"></i>
+                        </div>
+                        <h3 class="text-xl font-semibold mb-2">命令执行</h3>
+                        <p class="text-subtext0">AI 通过 <code class="bg-surface0 px-1 rounded text-peach">command:</code> 标签调用系统 Shell，返回执行结果。</p>
+                    </div>
+                    <!-- 功能卡片3 -->
+                    <div class="bg-mantle rounded-xl p-6 border border-surface0 hover:border-mauve/50 transition-all-300">
+                        <div class="text-green text-3xl mb-4">
+                            <i class="fas fa-history"></i>
+                        </div>
+                        <h3 class="text-xl font-semibold mb-2">上下文管理</h3>
+                        <p class="text-subtext0">自动保存对话历史，支持压缩（summary）或清空（clear），控制 token 消耗。</p>
+                    </div>
+                    <!-- 功能卡片4 -->
+                    <div class="bg-mantle rounded-xl p-6 border border-surface0 hover:border-mauve/50 transition-all-300">
+                        <div class="text-blue text-3xl mb-4">
+                            <i class="fas fa-folder-open"></i>
+                        </div>
+                        <h3 class="text-xl font-semibold mb-2">工作目录保持</h3>
+                        <p class="text-subtext0">AI 执行的命令在当前工作目录运行，支持 cd 命令（仅限绝对路径）。</p>
+                    </div>
+                    <!-- 功能卡片5 -->
+                    <div class="bg-mantle rounded-xl p-6 border border-surface0 hover:border-mauve/50 transition-all-300">
+                        <div class="text-yellow text-3xl mb-4">
+                            <i class="fas fa-brain"></i>
+                        </div>
+                        <h3 class="text-xl font-semibold mb-2">记忆机制</h3>
+                        <p class="text-subtext0">专属 <code class="bg-surface0 px-1 rounded text-peach">MEMORY.md</code> 文件，写入重要信息，实现长期记忆。</p>
+                    </div>
+                    <!-- 功能卡片6 -->
+                    <div class="bg-mantle rounded-xl p-6 border border-surface0 hover:border-mauve/50 transition-all-300">
+                        <div class="text-sky text-3xl mb-4">
+                            <i class="fas fa-puzzle-piece"></i>
+                        </div>
+                        <h3 class="text-xl font-semibold mb-2">技能扩展</h3>
+                        <p class="text-subtext0">自定义可调用的外部命令列表，AI 能通过 <code class="bg-surface0 px-1 rounded text-peach">--help</code> 查看用法。</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- 安装步骤区 -->
+        <section id="installation" class="py-16 bg-mantle">
+            <div class="container mx-auto px-4">
+                <h2 class="text-3xl font-bold text-center mb-12">
+                    <span class="text-mauve">📦</span> 安装
+                </h2>
+                <div class="max-w-3xl mx-auto space-y-8">
+                    <!-- 环境要求 -->
+                    <div class="bg-base rounded-xl p-6 border border-surface0">
+                        <h3 class="text-xl font-semibold mb-4 text-lavender">环境要求</h3>
+                        <ul class="list-disc list-inside space-y-2 text-subtext0">
+                            <li>Python 3.8+</li>
+                            <li>兼容 OpenAI API 的模型接口（OpenAI、Azure OpenAI、vLLM 等）</li>
+                        </ul>
+                    </div>
+                    <!-- 安装步骤 -->
+                    <div class="bg-base rounded-xl p-6 border border-surface0">
+                        <h3 class="text-xl font-semibold mb-4 text-lavender">安装步骤</h3>
+                        <ol class="space-y-6">
+                            <li class="space-y-2">
+                                <span class="font-medium text-text">1. 克隆仓库或下载源码</span>
+                                <div class="bg-crust rounded-lg p-4 font-mono text-sm text-green overflow-x-auto">
+                                    git clone https://github.com/yourname/nino-claw.git<br>
+                                    cd ninoclaw
+                                </div>
+                            </li>
+                            <li class="space-y-2">
+                                <span class="font-medium text-text">2. 安装依赖</span>
+                                <div class="bg-crust rounded-lg p-4 font-mono text-sm text-green overflow-x-auto">
+                                    pip install -r requirements.txt
+                                </div>
+                                <p class="text-subtext0 text-sm">若无 requirements.txt，手动安装：</p>
+                                <div class="bg-crust rounded-lg p-4 font-mono text-sm text-green overflow-x-auto">
+                                    pip install gnureadline openai rich
+                                </div>
+                                <div class="bg-surface0/50 rounded-lg p-3 text-sm text-subtext0 mt-2">
+                                    <i class="fas fa-info-circle text-sapphire mr-1"></i>
+                                    <span>gnureadline 用于改善 Linux 下 input() 体验，Windows 可安装 pyreadline3 或忽略</span>
+                                </div>
+                            </li>
+                            <li class="space-y-2">
+                                <span class="font-medium text-text">3. 配置技能（skill）</span>
+                                <p class="text-subtext0 text-sm">手动在 shell 配置中添加别名：</p>
+                                <div class="bg-crust rounded-lg p-4 font-mono text-sm text-green overflow-x-auto">
+                                    alias edit "/home/pinpe/文档/代码和项目/ninoclaw/skill/edit.py"<br>
+                                    alias web "python /home/pinpe/文档/代码和项目/ninoclaw/skill/web.py"<br>
+                                    alias get-llm "python /home/pinpe/文档/代码和项目/ninoclaw/skill/get_llm.py"<br>
+                                    alias vision "python /home/pinpe/文档/代码和项目/ninoclaw/skill/vision.py"
+                                </div>
+                            </li>
+                        </ol>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- 使用方法区 -->
+        <section id="usage" class="py-16 bg-base">
+            <div class="container mx-auto px-4">
+                <h2 class="text-3xl font-bold text-center mb-12">
+                    <span class="text-mauve">🚀</span> 使用方法
+                </h2>
+                <div class="max-w-3xl mx-auto space-y-8">
+                    <!-- 启动程序 -->
+                    <div class="bg-mantle rounded-xl p-6 border border-surface0">
+                        <h3 class="text-xl font-semibold mb-4 text-lavender">启动程序</h3>
+                        <div class="bg-crust rounded-lg p-4 font-mono text-sm text-green overflow-x-auto">
+                            python main.py
+                        </div>
+                        <p class="text-subtext0 mt-4">启动后显示 ASCII 艺术标题和历史上下文，进入交互模式（输入提示符：<code class="bg-surface0 px-1 rounded text-peach">>></code>）。</p>
+                    </div>
+                    <!-- 内置命令 -->
+                    <div class="bg-mantle rounded-xl p-6 border border-surface0">
+                        <h3 class="text-xl font-semibold mb-4 text-lavender">内置命令</h3>
+                        <div class="overflow-x-auto">
+                            <table class="w-full text-sm text-left">
+                                <thead class="text-subtext1 bg-surface0">
+                                    <tr>
+                                        <th class="px-4 py-3 rounded-l-lg">命令</th>
+                                        <th class="px-4 py-3 rounded-r-lg">作用</th>
+                                    </tr>
+                                </thead>
+                                <tbody class="text-subtext0">
+                                    <tr class="border-b border-surface0">
+                                        <td class="px-4 py-3 font-mono text-peach">summary</td>
+                                        <td class="px-4 py-3">压缩当前上下文，保留重要信息（调用 AI 总结）</td>
+                                    </tr>
+                                    <tr class="border-b border-surface0">
+                                        <td class="px-4 py-3 font-mono text-peach">clear</td>
+                                        <td class="px-4 py-3">清空所有上下文历史</td>
+                                    </tr>
+                                    <tr>
+                                        <td class="px-4 py-3 font-mono text-peach">exit</td>
+                                        <td class="px-4 py-3">退出程序</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- 项目结构区 -->
+        <section id="structure" class="py-16 bg-mantle">
+            <div class="container mx-auto px-4">
+                <h2 class="text-3xl font-bold text-center mb-12">
+                    <span class="text-mauve">📁</span> 项目结构
+                </h2>
+                <div class="max-w-2xl mx-auto bg-base rounded-xl p-6 border border-surface0 font-mono text-sm">
+                    <pre class="text-subtext0 whitespace-pre-wrap">
+.
+├── main.py                 # 主程序入口
+├── core.py                 # 核心功能：API 调用、命令执行、提示词构建、总结
+├── database.py             # 数据持久化：读写 JSON 配置和上下文
+├── config.json             # 程序配置
+├── env.json                # 环境变量（API 密钥）
+├── database/
+│   └── context.json        # 对话历史上下文
+└── README.md               # 文档
+                    </pre>
+                </div>
+            </div>
+        </section>
+
+        <!-- 已知问题和许可证 -->
+        <section class="py-16 bg-base">
+            <div class="container mx-auto px-4 max-w-3xl">
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                    <!-- 已知问题 -->
+                    <div class="bg-mantle rounded-xl p-6 border border-surface0">
+                        <h3 class="text-xl font-semibold mb-4 text-lavender">
+                            <i class="fas fa-exclamation-triangle text-peach mr-2"></i>已知问题
+                        </h3>
+                        <ul class="list-disc list-inside space-y-2 text-subtext0 text-sm">
+                            <li>command: 标签出现在回复中间会被误解析执行</li>
+                            <li>Shell 配置文件中的交互式命令可能导致阻塞</li>
+                            <li>命令执行超时/中断会返回错误信息</li>
+                        </ul>
+                    </div>
+                    <!-- 许可证 -->
+                    <div class="bg-mantle rounded-xl p-6 border border-surface0">
+                        <h3 class="text-xl font-semibold mb-4 text-lavender">
+                            <i class="fas fa-file-contract text-sky mr-2"></i>许可证
+                        </h3>
+                        <p class="text-subtext0">本项目采用 <span class="text-mauve font-medium">GPL-3.0</span> 许可证，详见 LICENSE 文件。</p>
+                        <p class="text-subtext0 mt-4">欢迎提交 Issue 和 Pull Request，贡献代码！</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <!-- 页脚 -->
+    <footer class="bg-crust border-t border-surface0 py-8">
+        <div class="container mx-auto px-4 text-center">
+            <p class="text-subtext0">
+                <span class="text-mauve font-medium">NinoClaw</span> —— 让 AI 住在你的终端里，成为你的贴心小助手！🎉
+            </p>
+            <p class="text-overlay0 text-sm mt-4">
+                © 2026 NinoClaw | 基于 Catppuccin Mocha 配色 | <a href="https://github.com/Pinpe/nino-claw" class="text-lavender hover:text-mauve transition-all-300">GitHub</a>
+            </p>
+        </div>
+    </footer>
+
+    <!-- JavaScript -->
+    <script>
+        // 移动端菜单切换
+        const menuBtn = document.getElementById('menuBtn');
+        const mobileMenu = document.getElementById('mobileMenu');
+        
+        menuBtn.addEventListener('click', () => {
+            mobileMenu.classList.toggle('hidden');
+            // 切换图标
+            const icon = menuBtn.querySelector('i');
+            if (mobileMenu.classList.contains('hidden')) {
+                icon.classList.remove('fa-times');
+                icon.classList.add('fa-bars');
+            } else {
+                icon.classList.remove('fa-bars');
+                icon.classList.add('fa-times');
+            }
+        });
+
+        // 平滑滚动
+        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+            anchor.addEventListener('click', function (e) {
+                e.preventDefault();
+                const targetId = this.getAttribute('href');
+                if (targetId === '#') return;
+                
+                const targetElement = document.querySelector(targetId);
+                if (targetElement) {
+                    window.scrollTo({
+                        top: targetElement.offsetTop - 80, // 偏移导航栏高度
+                        behavior: 'smooth'
+                    });
+                    
+                    // 关闭移动端菜单
+                    if (!mobileMenu.classList.contains('hidden')) {
+                        mobileMenu.classList.add('hidden');
+                        const icon = menuBtn.querySelector('i');
+                        icon.classList.remove('fa-times');
+                        icon.classList.add('fa-bars');
+                    }
+                }
+            });
+        });
+
+        // 滚动时导航栏样式变化
+        window.addEventListener('scroll', () => {
+            const header = document.querySelector('header');
+            if (window.scrollY > 50) {
+                header.classList.add('shadow-md');
+            } else {
+                header.classList.remove('shadow-md');
+            }
+        });
+    </script>
+</body>
+</html>
