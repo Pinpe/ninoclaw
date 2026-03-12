@@ -44,5 +44,5 @@ def dividing_line() -> None:
     '''
     分割线，打印出可以适配终端长度的一条线。
     '''
-    # 是的，你没看错，直接用的是rich的markdown渲染的，但你不觉得改一下名就看起来好多了吗
-    console.print(rich.markdown.Markdown('---'),end='')
+    console.print(rich.rule.Rule(characters='='))
+    print()

@@ -5,7 +5,6 @@ from lib import core
 import rich.traceback
 import rich.markdown
 import rich.console
-import gnureadline  # 用于修复在Linux下input()函数不好用的问题
 import textwrap
 import time
 import sys
@@ -13,6 +12,8 @@ import os
 
 
 '''== 初始化 =='''
+if os.name == 'posix':
+    import gnureadline  # 用于修复在Linux下input()函数不好用的问题，导入下就能用
 rich.traceback.install(show_locals=True)  # 初始化rich样式的traceback
 console        = rich.console.Console()   # 初始化rich的终端对象
 user_cmd_input = None
@@ -21,7 +22,24 @@ last_cmd       = None
 
 
 '''== 内部函数 =='''
-def handle_commend(ai_output:str) -> str:
+def cd_command(cmd):
+    '''
+    在命令交给命令执行器之前，如果发现输入的命令为cd，则可以执行这个特制的命令，更新path，不交给命令执行器。
+    
+    :param cmd: 要执行的命令
+    '''
+    global path
+    # 去除掉cd、双引号和首尾空格，写在新路径变量
+    new_path = os.path.abspath(os.path.join(path, cmd.replace('cd', '').replace('\"', '').strip()))
+    # 检查新目录是否是正确的，是的话就替代旧路径，切换目录，不是就报错
+    if os.path.isdir(new_path):
+        path = new_path
+        return f'目录已切换：{path}'
+    else:
+        return f'错误：目录不存在：{new_path}'
+
+
+def handle_command(ai_output:str) -> str:
     '''
     当发现AI的回复需要执行命令时，在这里处理。
 
@@ -48,14 +66,7 @@ def handle_commend(ai_output:str) -> str:
     last_cmd = cmd
     # 处理cd命令，切换工作目录
     if 'cd' in cmd:
-        # 去除掉cd、双引号和首尾空格，写在新路径变量
-        new_path = os.path.abspath(os.path.join(path, cmd.replace('cd', '').replace('\"', '').strip()))
-        # 检查新目录是否是正确的，是的话就替代旧路径，切换目录，不是就报错
-        if os.path.isdir(new_path):
-            path = new_path
-            return f'目录已切换：{path}'
-        else:
-            return f'错误：目录不存在：{new_path}'
+        return cd_command(cmd)
     # 执行命令，返回执行结果
     return core.command_exec(cmd, path)
 
@@ -72,10 +83,10 @@ def title_and_history() -> None:
         [blue]⡵⠟⠈⢀⣀⣀⡀⠉⢿⣿⣿⣿⣿⣿⣿⣿⣼⣿⢈⡋⠴⢿⡟⣡⡇⣿⡇[/blue]    [yellow]██║ ╚████║██║██║ ╚████║╚██████╔╝╚██████╗███████╗██║  ██║╚███╔███╔╝[/yellow]
         [blue]⠁⣠⣾⠟⡉⡉⡉⠻⣦⣻⣿⣿⣿⣿⣿⣿⣿⣿⣧⠸⣿⣦⣥⣿⡇⡿⣰[/blue]    [yellow]╚═╝  ╚═══╝╚═╝╚═╝  ╚═══╝ ╚═════╝  ╚═════╝╚══════╝╚═╝  ╚═╝ ╚══╝╚══╝ [/yellow]
         [blue]⢰⣿⡏⣴⣌⠈⣌⠡⠈⢻⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣬⣉⣉⣁⣄⢖⢕[/blue]
-        [blue]⢻⣿⡇⢙⠁⠴⢿⡟⣡⡆⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣷⣵[/blue]                        [b green]版本：3.3.0[/b green]      [b red]作者：Pinpe[/b red]
+        [blue]⢻⣿⡇⢙⠁⠴⢿⡟⣡⡆⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣷⣵[/blue]                        [b green]版本：3.4.0[/b green]      [b red]作者：Pinpe[/b red]
         [blue]⣄⣻⣿⣌⠘⢿⣷⣥⣿⠇⣿⣿⣿⣿⣿⣿⠛⠻⣿⣿⣿⣿⣿⣿⣿⣿⣿[/blue]
-        [blue]⢄⠻⣿⣟⠿⠦⠍⠉⣡⣾⣿⣿⣿⣿⣿⣿⢸⣿⣦⠙⣿⣿⣿⣿⣿⣿⣿[/blue]    输入：[yellow]summary[/yellow] 压缩上下文    [yellow]clear[/yellow] 清除上下文
-        [blue]⡑⣑⣈⣻⢗⢟⢞⢝⣻⣿⣿⣿⣿⣿⣿⣿⠸⣿⠿⠃⣿⣿⣿⣿⣿⣿⡿[/blue]          [yellow]exit[/yellow]    退出
+        [blue]⢄⠻⣿⣟⠿⠦⠍⠉⣡⣾⣿⣿⣿⣿⣿⣿⢸⣿⣦⠙⣿⣿⣿⣿⣿⣿⣿[/blue]    输入：[yellow]summary[/yellow] 压缩上下文       [yellow]clear[/yellow] 清除上下文
+        [blue]⡑⣑⣈⣻⢗⢟⢞⢝⣻⣿⣿⣿⣿⣿⣿⣿⠸⣿⠿⠃⣿⣿⣿⣿⣿⣿⡿[/blue]          [yellow]command[/yellow] 执行Shell命令    [yellow]exit[/yellow]  退出
         [blue]⡵⡈⢟⢕⢕⢕⢕⣵⣿⣿⣿⣿⣿⣿⣿⣿⣿⣶⣶⣿⣿⣿⣿⣿⠿⠋⣀[/blue]
     '''))
     # 如果发现有上下文（即上下文不为空），便把上下文打印出来
@@ -92,10 +103,10 @@ def user_input_box() -> str | None:
     try:
         user_input = console.input(
             f'[black on yellow] {time.ctime()} [/black on yellow]'
-            f'[black on cyan] {path} [/black on cyan][cyan][/cyan]\n'
+            f'[black on cyan] {path} [/black on cyan][cyan][/cyan]\n'
             '[green]▶[/green] '
         )
-    # 如果用户按了Ctrl+C的话就退出，否则traceback就糊脸了
+    # 如果用户按了Ctrl+C的话就退出，否则traceback就糊脸了，下面的也是
     except KeyboardInterrupt:
         sys.exit(0)
     # 开始判断是否为NinoClaw命令，或是否空白
@@ -122,10 +133,31 @@ def user_input_box() -> str | None:
         # 然后重载标题，打印个提示，和上面一样
         title_and_history()
         console.print('\n[black on green] 上下文已清空 [/black on green]\n')
+    elif user_input == 'command':
+        try:
+            cmd = console.input('[blue]$[/blue] ')
+        except KeyboardInterrupt:
+            sys.exit(0)
+        # 如果命令是空白的，则回调到本函数，重新让用户输入
+        if cmd == '':
+            print()  # 这里加个换行，好看点
+        # 先把用户输入的命令添加到上下文
+        database.add_context(f'[{time.ctime()}][{path}][用户自己执行命令] >> {cmd}')
+        # 处理cd命令，切换工作目录
+        if 'cd' in cmd:
+            cmd_output = cd_command(cmd)
+        else:
+            # 执行命令，返回执行结果
+            cmd_output = core.command_exec(cmd, path)
+        # 然后打印出运行结果并保存在上下文
+        console.print(cmd_output)
+        terminal.dividing_line()
+        database.add_context(f'[{time.ctime()}][{path}][用户或返回结果] >> {cmd_output}')
     # 如果既不是命令也不是空白，提前退出函数，返回用户输入
     else:
         return user_input
     return None  # 返回None，会被此函数下面的一个判断（if userinput is None）截获，便不会运行之后的逻辑
+                    # 只要不提前返回user_input就没事，有这个兜着
 
 
 '''== 主程序 =='''
@@ -147,7 +179,7 @@ if __name__ == '__main__':
         # 如果发现AI需要执行命令（发现包含成对标签 ）
         if database.load_data()['config']['cmd_start_tag'] in ai_output \
             and database.load_data()['config']['cmd_end_tag'] in ai_output:
-            user_cmd_input = handle_commend(ai_output)
+            user_cmd_input = handle_command(ai_output)
         # 如果不需要执行命令
         else:
             # 直接输出 + 上下文

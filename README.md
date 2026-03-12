@@ -1,4 +1,8 @@
-# NinoClaw
+![](./redame_src/image.png)
+
+![](./redame_src/Gemini_Generated_Image_wg5z5owg5z5owg5z.png)
+
+# 🎐 NinoClaw
 
 NinoClaw 是一个命令行界面的 AI 助手程序，它将大语言模型（LLM）与系统命令执行能力相结合，让你能够在终端中与一个活泼的虚拟少女（pomi）对话，并让她帮你执行 Shell 命令、管理文件等。
 
@@ -24,7 +28,7 @@ NinoClaw 是一个命令行界面的 AI 助手程序，它将大语言模型（L
 
 1. 克隆仓库或下载源码：
    ```bash
-   git clone https://github.com/yourname/nino-claw.git
+   git clone https://github.com/yourname/ninoclaw.git
    cd ninoclaw
    ```
 
@@ -32,10 +36,7 @@ NinoClaw 是一个命令行界面的 AI 助手程序，它将大语言模型（L
    ```bash
    pip install -r requirements.txt
    ```
-   若没有 `requirements.txt`，手动安装以下依赖：
-   ```bash
-   pip install gnureadline openai rich
-   ```
+
    > **注意**：`gnureadline` 用于改善 Linux 下 `input()` 的体验，Windows 下可尝试安装 `pyreadline3` 或忽略（可能影响回退/历史功能）。
 
 3. 配置skill：
@@ -66,21 +67,41 @@ python main.py
 |-----------|--------------------------------------------------|
 | `summary` | 压缩当前上下文，保留重要信息（调用 AI 总结）         |
 | `clear`   | 清空所有上下文历史                                 |
+| `command` | 手动执行Shell命令                                  |
 | `exit`    | 退出程序                                           |
 
 ## 📁 项目结构
 
 ```
-.
-├── main.py                 # 主程序入口
-├── core.py                 # 核心功能：API 调用、命令执行、提示词构建、总结
-├── database.py             # 数据持久化：读写 JSON 配置和上下文
-├── config.json             # 程序配置
-├── env.json                # 环境变量（API 密钥）
-├── database/
-│   └── context.json        # 对话历史上下文
-└── README.md               # 本文档
+文档/代码和项目/ninoclaw/
+├── config.json
+├── redame_src
+│   └── image.png
+├── home
+│   ├── MEMORY.md
+│   └── diary
+│       ├── 2026-03-09.md
+├── LICENSE
+├── skill
+│   ├── get_llm.py
+│   ├── edit.py
+│   ├── web.py
+│   └── vision.py
+├── main.py
+├── env.json
+├── database
+│   └── context.json
+├── README.md
+├── lib
+│   ├── database.py
+│   ├── terminal.py
+│   └── core.py
+└── index.html
 ```
+
+## 📊 架构图
+
+![](./redame_src/deepseek_mermaid_20260309_2acc51.png)
 
 ## 🛠️ 依赖库
 
@@ -90,9 +111,7 @@ python main.py
 
 ## ⚠️ 已知问题
 
-- 如果 `command:` 标签出现在回复中间（非末尾），会被误解析并尝试执行，因此 AI 在非命令场景下应避免使用该字符串。
 - 命令执行使用了 `subprocess` 并加载了 Shell 配置文件，请确保配置文件中没有交互式提示或长期阻塞的命令。
-- 当命令执行超时或被用户中断时，会返回相应错误信息。
 
 ## 🤝 贡献
 

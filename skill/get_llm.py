@@ -18,11 +18,11 @@ def call_api(prompt: str) -> str:
     try:
         client = OpenAI(
             api_key=json.load(open('/home/pinpe/文档/代码和项目/ninoclaw/env.json', encoding='UTF-8'))['ai_api_key'],
-            base_url='https://api.pearktrue.cn/v1/'
+            base_url='https://www.packyapi.com/v1'
         )
         # 调用 OpenAI API
         response = client.chat.completions.create(
-            model="MiniMax-M2.5",
+            model="minimax-m2.5",
             stream=False,
             messages=[{
                 "role": "user",

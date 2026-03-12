@@ -83,7 +83,7 @@ def format_web_content(url: str) -> str:
 @app.command()
 def main(url: str):
     """
-    提取指定网址的文本内容（示例：python web.py https://pinpe.top）
+    提取指定网址的文本内容（示例：web https://pinpe.top）
     :param url: 要访问的网站地址（需包含http/https）
     """
     # 获取格式化后的文本

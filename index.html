@@ -97,14 +97,14 @@
     <header class="sticky top-0 z-50 bg-crust/90 backdrop-blur-sm border-b border-surface0">
         <div class="container mx-auto px-4 py-3 flex justify-between items-center">
             <a href="#" class="flex items-center gap-2">
-                <span class="text-mauve text-2xl font-bold text-shadow-glow">NinoClaw</span>
+                <span class="text-mauve text-2xl font-bold text-shadow-glow">🎐NinoClaw</span>
             </a>
             <nav class="hidden md:flex gap-6">
                 <a href="#features" class="text-subtext0 hover:text-mauve transition-all-300">功能</a>
                 <a href="#installation" class="text-subtext0 hover:text-mauve transition-all-300">安装</a>
                 <a href="#usage" class="text-subtext0 hover:text-mauve transition-all-300">使用</a>
                 <a href="#structure" class="text-subtext0 hover:text-mauve transition-all-300">结构</a>
-                <a href="https://github.com/Pinpe/nino-claw" target="_blank" class="flex items-center gap-1 text-subtext0 hover:text-mauve transition-all-300">
+                <a href="https://github.com/Pinpe/ninoclaw" target="_blank" class="flex items-center gap-1 text-subtext0 hover:text-mauve transition-all-300">
                     <i class="fab fa-github"></i> GitHub
                 </a>
             </nav>
@@ -120,7 +120,7 @@
                 <a href="#installation" class="py-2 text-subtext0 hover:text-mauve transition-all-300">安装</a>
                 <a href="#usage" class="py-2 text-subtext0 hover:text-mauve transition-all-300">使用</a>
                 <a href="#structure" class="py-2 text-subtext0 hover:text-mauve transition-all-300">结构</a>
-                <a href="https://github.com/Pinpe/nino-claw" target="_blank" class="py-2 flex items-center gap-1 text-subtext0 hover:text-mauve transition-all-300">
+                <a href="https://github.com/Pinpe/ninoclaw" target="_blank" class="py-2 flex items-center gap-1 text-subtext0 hover:text-mauve transition-all-300">
                     <i class="fab fa-github"></i> GitHub
                 </a>
             </div>
@@ -133,7 +133,7 @@
             <div class="container mx-auto px-4 flex flex-col md:flex-row items-center gap-8">
                 <div class="w-full md:w-1/2 space-y-6">
                     <h1 class="text-4xl md:text-5xl lg:text-6xl font-bold">
-                        <span class="text-mauve">NinoClaw</span>
+                        <span class="text-mauve"> 🎐NinoClaw</span>
                         <span class="block text-2xl md:text-3xl mt-2 text-subtext1">终端里的AI少女助手</span>
                     </h1>
                     <p class="text-subtext0 text-lg">
@@ -143,7 +143,7 @@
                         <a href="#installation" class="bg-mauve text-crust px-6 py-3 rounded-lg font-medium hover:bg-mauve/90 transition-all-300 shadow-lg shadow-mauve/20">
                             开始使用
                         </a>
-                        <a href="https://github.com/Pinpe/nino-claw" target="_blank" class="bg-surface0 text-text px-6 py-3 rounded-lg font-medium hover:bg-surface1 transition-all-300 flex items-center gap-2">
+                        <a href="https://github.com/Pinpe/ninoclaw" target="_blank" class="bg-surface0 text-text px-6 py-3 rounded-lg font-medium hover:bg-surface1 transition-all-300 flex items-center gap-2">
                             <i class="fab fa-github"></i> 查看源码
                         </a>
                     </div>
@@ -259,7 +259,7 @@
                             <li class="space-y-2">
                                 <span class="font-medium text-text">1. 克隆仓库或下载源码</span>
                                 <div class="bg-crust rounded-lg p-4 font-mono text-sm text-green overflow-x-auto">
-                                    git clone https://github.com/yourname/nino-claw.git<br>
+                                    git clone https://github.com/yourname/ninoclaw.git<br>
                                     cd ninoclaw
                                 </div>
                             </li>
@@ -328,6 +328,10 @@
                                         <td class="px-4 py-3 font-mono text-peach">clear</td>
                                         <td class="px-4 py-3">清空所有上下文历史</td>
                                     </tr>
+                                    <tr class="border-b border-surface0">
+                                        <td class="px-4 py-3 font-mono text-peach">command</td>
+                                        <td class="px-4 py-3">手动执行Shell命令</td>
+                                    </tr>
                                     <tr>
                                         <td class="px-4 py-3 font-mono text-peach">exit</td>
                                         <td class="px-4 py-3">退出程序</td>
@@ -348,15 +352,30 @@
                 </h2>
                 <div class="max-w-2xl mx-auto bg-base rounded-xl p-6 border border-surface0 font-mono text-sm">
                     <pre class="text-subtext0 whitespace-pre-wrap">
-.
-├── main.py                 # 主程序入口
-├── core.py                 # 核心功能：API 调用、命令执行、提示词构建、总结
-├── database.py             # 数据持久化：读写 JSON 配置和上下文
-├── config.json             # 程序配置
-├── env.json                # 环境变量（API 密钥）
-├── database/
-│   └── context.json        # 对话历史上下文
-└── README.md               # 文档
+文档/代码和项目/ninoclaw/
+├── config.json
+├── redame_src
+│   └── image.png
+├── home
+│   ├── MEMORY.md
+│   └── diary
+│       ├── 2026-03-09.md
+├── LICENSE
+├── skill
+│   ├── get_llm.py
+│   ├── edit.py
+│   ├── web.py
+│   └── vision.py
+├── main.py
+├── env.json
+├── database
+│   └── context.json
+├── README.md
+├── lib
+│   ├── database.py
+│   ├── terminal.py
+│   └── core.py
+└── index.html
                     </pre>
                 </div>
             </div>
@@ -372,9 +391,7 @@
                             <i class="fas fa-exclamation-triangle text-peach mr-2"></i>已知问题
                         </h3>
                         <ul class="list-disc list-inside space-y-2 text-subtext0 text-sm">
-                            <li>command: 标签出现在回复中间会被误解析执行</li>
                             <li>Shell 配置文件中的交互式命令可能导致阻塞</li>
-                            <li>命令执行超时/中断会返回错误信息</li>
                         </ul>
                     </div>
                     <!-- 许可证 -->
@@ -397,7 +414,7 @@
                 <span class="text-mauve font-medium">NinoClaw</span> —— 让 AI 住在你的终端里，成为你的贴心小助手！🎉
             </p>
             <p class="text-overlay0 text-sm mt-4">
-                © 2026 NinoClaw | 基于 Catppuccin Mocha 配色 | <a href="https://github.com/Pinpe/nino-claw" class="text-lavender hover:text-mauve transition-all-300">GitHub</a>
+                © 2026 NinoClaw | 基于 Catppuccin Mocha 配色 | <a href="https://github.com/Pinpe/ninoclaw" class="text-lavender hover:text-mauve transition-all-300">GitHub</a>
             </p>
         </div>
     </footer>

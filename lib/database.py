@@ -40,7 +40,7 @@ def add_context(new_context: str) -> None:
     :param new_context: 要添加的上下文。
     '''
     context_list = load_data()['context']
-    if len(context_list) == load_data()['config']['context_len']:  # 保留多少上下文条数，在config里设定
+    if len(context_list) >= load_data()['config']['context_len']:  # 保留多少上下文条数，在config里设定
         del context_list[0]
     context_list.append(new_context)
     format_json_dump(context_list, 'database/context.json')

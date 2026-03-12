@@ -1,0 +1,8 @@
+rich
+openai
+subprocess
+requests
+urllib
+bs4
+chardet
+typer

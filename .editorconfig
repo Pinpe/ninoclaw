@@ -1,0 +1,21 @@
+# EditorConfig 配置文件
+# 更多信息请访问 https://editorconfig.org
+
+root = true
+
+# 通用设置
+[*]
+charset = utf-8                 # 文件编码为 UTF-8
+indent_style = space            # 缩进使用空格
+indent_size = 4                 # 缩进大小为 4 个空格
+insert_final_newline = false    # 文件末尾不插入换行
+trim_trailing_whitespace = true # 删除行尾多余空格
+
+# 针对 Markdown 文件的特殊设置
+[*.md]
+max_line_length = off            # 不限制 Markdown 文件的行长度
+trim_trailing_whitespace = false # 保留行尾空格（Markdown 中可能有意义）
+
+# 针对 JSON 文件的特殊设置
+[*.json]
+indent_size = 4 # JSON 文件缩进为 4 个空格
