@@ -6,3 +6,5 @@ urllib
 bs4
 chardet
 typer
+html5lib
+yt-dlp

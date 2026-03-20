@@ -12,13 +12,6 @@ import rich.console
 console = rich.console.Console()
 
 
-def clear_screen() -> None:
-    '''
-    清空屏幕。
-    '''
-    print('\033[2J\033[H', end='')  # 注意这里用的自带的函数，而不是rich的，只有自带的才能生效
-
-
 def command_proceessed(loading_text: str) -> None:
     '''
     给某个函数打印“加载中”提示，当函数完成时自动消失，此外这是一个装饰器。

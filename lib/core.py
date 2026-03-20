@@ -7,22 +7,26 @@ from openai import OpenAI
 from lib    import database
 from lib    import terminal
 import subprocess
-import textwrap
 import datetime
 import time
 
 
-@terminal.command_proceessed('pomi正在思考中...')
+api_retry_num = 0
+
+
+@terminal.command_proceessed('正在思考中...')
 def call_api(prompt: str) -> str:
     '''
     直接将**原始**的提示词发送给AI，是与AI交互的直接接口。
 
     :param prompt: 给AI的**原始**提示词。
     '''
+    global api_retry_num
     try:
         client = OpenAI(
             api_key  = database.load_data()['env']['ai_api_key'],
-            base_url = database.load_data()['config']['base_url']
+            base_url = database.load_data()['config']['base_url'],
+            timeout  = database.load_data()['config']['api_time_out']
         )
         response = client.chat.completions.create(
             model    = database.load_data()['config']['model'],
@@ -32,11 +36,22 @@ def call_api(prompt: str) -> str:
                 "content": prompt
             }]
         )
-        return str(response.choices[0].message.content)
+        api_retry_num = 0  # 当API正常响应时，就重置重试次数
+        return response.choices[0].message.content
     except Exception as err:
-        return str(err)  # 当API调用出现问题，会直接返回错误信息，请注意捕获
+        if api_retry_num < database.load_data()['config']['api_retry_num']:
+            # 当调用失败时，几秒后尝试重新调用
+            time.sleep(database.load_data()['config']['api_retry_sleep'])
+            api_retry_num += 1  # 增加重试次数
+            call_api(prompt)
+        else:
+            # 当然，如果重试次数超过了上限，就直接报错吧
+            raise err
 """
 def call_api(prompt: str) -> str:
+    '''
+    这是用于debug的假接口，用法和上面一样，但不会提交到真api，而是stdio。
+    '''
     print(prompt)
     return input('[debug AI] >> ')
 """
@@ -56,10 +71,14 @@ def create_prompt() -> str:
         skill_str += (i + '\n')
     # 返回提示词
     # 先读取提示词模板文件（open），然后格式化文件内容为多行字符串（"""{}"""），最后填充模板（eval）
-    return eval(f'f"""{open('prompt_template.txt', encoding='UTF-8').read()}"""')
+    return eval(
+        f'f"""{open(
+            database.load_data()['config']['prompt_template_path'],
+            encoding='UTF-8'
+        ).read()}"""')
 
 
-@terminal.command_proceessed('pomi正在执行命令...')
+@terminal.command_proceessed('正在执行命令...')
 def command_exec(input: str, path: str) -> str:
     '''
     执行shell命令。
@@ -67,7 +86,7 @@ def command_exec(input: str, path: str) -> str:
     :param input: 需要执行的命令。
     :param path: 当前所在的目录。
     '''
-    time.sleep(5)  # 这里加个阻塞，调用太快可能会被排队
+    time.sleep(database.load_data()['config']['cmd_sleep'])  # 这里加个阻塞，调用太快可能会被排队
     try:
         output =  subprocess.run(
             args           = [f'source {database.load_data()['config']['shell_config']} ; {input}'],
@@ -97,4 +116,4 @@ def summary(content, len: int) -> str:
     :param content: 需要总结的内容。
     :param len: 总结后的长度（字），不保证完全对上。
     '''
-    return call_api(f'总结以下内容，不少于{len}字：\n{content}')
+    return call_api(f'总结以下内容，需要保留所有要点和信息，不少于{len}字：\n{content}')

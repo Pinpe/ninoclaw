@@ -29,9 +29,14 @@ def cd_command(cmd):
     :param cmd: 要执行的命令
     '''
     global path
-    # 去除掉cd、双引号和首尾空格，写在新路径变量
-    new_path = os.path.abspath(os.path.join(path, cmd.replace('cd', '').replace('\"', '').strip()))
-    # 检查新目录是否是正确的，是的话就替代旧路径，切换目录，不是就报错
+    # 去除掉cd、双引号和首尾空格，得到目标路径
+    target = cmd.replace('cd', '').replace('\"', '').strip()
+    # 处理 ~ 展开：如果目标路径以 ~ 开头，则替换为自定义的 HOME_DIR
+    if target.startswith('~'):
+        target = database.load_data()['config']['home_path'] + target[1:]   # 保留 ~ 后面的部分（如 /documents）
+    # 拼接当前路径并获取绝对路径
+    new_path = os.path.abspath(os.path.join(path, target))
+    # 检查新目录是否存在且为目录
     if os.path.isdir(new_path):
         path = new_path
         return f'目录已切换：{path}'
@@ -39,7 +44,7 @@ def cd_command(cmd):
         return f'错误：目录不存在：{new_path}'
 
 
-def handle_command(ai_output:str) -> str:
+def handle_command(ai_output: str) -> str:
     '''
     当发现AI的回复需要执行命令时，在这里处理。
 
@@ -74,27 +79,80 @@ def title_and_history() -> None:
     '''
     打印主程序的标题和上下文。
     '''
-    terminal.clear_screen()
+    console.clear()
     console.print(textwrap.dedent('''
-        [blue]⣿⣆⠱⣝⡵⣝⢅⠙⣿⢕⢕⢕⢕⢝⣥⢒⠅⣿⣿⣿⡿⣳⣌⠪⡪⣡⢑[/blue]    [yellow]███╗   ██╗██╗███╗   ██╗ ██████╗  ██████╗██╗      █████╗ ██╗    ██╗[/yellow]
-        [blue]⣿⣿⣦⠹⣳⣳⣕⢅⠈⢗⢕⢕⢕⢕⢕⢈⢆⠟⠋⠉⠁⠉⠉⠁⠈⠼⢐[/blue]    [yellow]████╗  ██║██║████╗  ██║██╔═══██╗██╔════╝██║     ██╔══██╗██║    ██║[/yellow]
-        [blue]⢰⣶⣶⣦⣝⢝⢕⢕⠅⡆⢕⢕⢕⢕⢕⣴⠏⣠⡶⠛⡉⡉⡛⢶⣦⡀⠐[/blue]    [yellow]██╔██╗ ██║██║██╔██╗ ██║██║   ██║██║     ██║     ███████║██║ █╗ ██║[/yellow]
-        [blue]⡄⢻⢟⣿⣿⣷⣕⣕⣅⣿⣔⣕⣵⣵⣿⣿⢠⣿⢠⣮⡈⣌⠨⠅⠹⣷⡀[/blue]    [yellow]██║╚██╗██║██║██║╚██╗██║██║   ██║██║     ██║     ██╔══██║██║███╗██║[/yellow]
-        [blue]⡵⠟⠈⢀⣀⣀⡀⠉⢿⣿⣿⣿⣿⣿⣿⣿⣼⣿⢈⡋⠴⢿⡟⣡⡇⣿⡇[/blue]    [yellow]██║ ╚████║██║██║ ╚████║╚██████╔╝╚██████╗███████╗██║  ██║╚███╔███╔╝[/yellow]
-        [blue]⠁⣠⣾⠟⡉⡉⡉⠻⣦⣻⣿⣿⣿⣿⣿⣿⣿⣿⣧⠸⣿⣦⣥⣿⡇⡿⣰[/blue]    [yellow]╚═╝  ╚═══╝╚═╝╚═╝  ╚═══╝ ╚═════╝  ╚═════╝╚══════╝╚═╝  ╚═╝ ╚══╝╚══╝ [/yellow]
-        [blue]⢰⣿⡏⣴⣌⠈⣌⠡⠈⢻⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣬⣉⣉⣁⣄⢖⢕[/blue]
-        [blue]⢻⣿⡇⢙⠁⠴⢿⡟⣡⡆⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣷⣵[/blue]                        [b green]版本：3.4.0[/b green]      [b red]作者：Pinpe[/b red]
-        [blue]⣄⣻⣿⣌⠘⢿⣷⣥⣿⠇⣿⣿⣿⣿⣿⣿⠛⠻⣿⣿⣿⣿⣿⣿⣿⣿⣿[/blue]
-        [blue]⢄⠻⣿⣟⠿⠦⠍⠉⣡⣾⣿⣿⣿⣿⣿⣿⢸⣿⣦⠙⣿⣿⣿⣿⣿⣿⣿[/blue]    输入：[yellow]summary[/yellow] 压缩上下文       [yellow]clear[/yellow] 清除上下文
-        [blue]⡑⣑⣈⣻⢗⢟⢞⢝⣻⣿⣿⣿⣿⣿⣿⣿⠸⣿⠿⠃⣿⣿⣿⣿⣿⣿⡿[/blue]          [yellow]command[/yellow] 执行Shell命令    [yellow]exit[/yellow]  退出
-        [blue]⡵⡈⢟⢕⢕⢕⢕⣵⣿⣿⣿⣿⣿⣿⣿⣿⣿⣶⣶⣿⣿⣿⣿⣿⠿⠋⣀[/blue]
+        [cyan]⣿⣆⠱⣝⡵⣝⢅⠙⣿⢕⢕⢕⢕⢝⣥⢒⠅⣿⣿⣿⡿⣳⣌⠪⡪⣡⢑[/cyan]    [yellow]███╗   ██╗██╗███╗   ██╗ ██████╗  ██████╗██╗      █████╗ ██╗    ██╗[/yellow]
+        [cyan]⣿⣿⣦⠹⣳⣳⣕⢅⠈⢗⢕⢕⢕⢕⢕⢈⢆⠟⠋⠉⠁⠉⠉⠁⠈⠼⢐[/cyan]    [yellow]████╗  ██║██║████╗  ██║██╔═══██╗██╔════╝██║     ██╔══██╗██║    ██║[/yellow]
+        [cyan]⢰⣶⣶⣦⣝⢝⢕⢕⠅⡆⢕⢕⢕⢕⢕⣴⠏⣠⡶⠛⡉⡉⡛⢶⣦⡀⠐[/cyan]    [yellow]██╔██╗ ██║██║██╔██╗ ██║██║   ██║██║     ██║     ███████║██║ █╗ ██║[/yellow]
+        [cyan]⡄⢻⢟⣿⣿⣷⣕⣕⣅⣿⣔⣕⣵⣵⣿⣿⢠⣿⢠⣮⡈⣌⠨⠅⠹⣷⡀[/cyan]    [yellow]██║╚██╗██║██║██║╚██╗██║██║   ██║██║     ██║     ██╔══██║██║███╗██║[/yellow]
+        [cyan]⡵⠟⠈⢀⣀⣀⡀⠉⢿⣿⣿⣿⣿⣿⣿⣿⣼⣿⢈⡋⠴⢿⡟⣡⡇⣿⡇[/cyan]    [yellow]██║ ╚████║██║██║ ╚████║╚██████╔╝╚██████╗███████╗██║  ██║╚███╔███╔╝[/yellow]
+        [cyan]⠁⣠⣾⠟⡉⡉⡉⠻⣦⣻⣿⣿⣿⣿⣿⣿⣿⣿⣧⠸⣿⣦⣥⣿⡇⡿⣰[/cyan]    [yellow]╚═╝  ╚═══╝╚═╝╚═╝  ╚═══╝ ╚═════╝  ╚═════╝╚══════╝╚═╝  ╚═╝ ╚══╝╚══╝ [/yellow]
+        [cyan]⢰⣿⡏⣴⣌⠈⣌⠡⠈⢻⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣬⣉⣉⣁⣄⢖⢕[/cyan]
+        [cyan]⢻⣿⡇⢙⠁⠴⢿⡟⣡⡆⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣷⣵[/cyan]                        [b green]版本：3.5.0[/b green]      [b red]作者：Pinpe[/b red]
+        [cyan]⣄⣻⣿⣌⠘⢿⣷⣥⣿⠇⣿⣿⣿⣿⣿⣿⠛⠻⣿⣿⣿⣿⣿⣿⣿⣿⣿[/cyan]
+        [cyan]⢄⠻⣿⣟⠿⠦⠍⠉⣡⣾⣿⣿⣿⣿⣿⣿⢸⣿⣦⠙⣿⣿⣿⣿⣿⣿⣿[/cyan]          输入：    [yellow]summary[/yellow] 压缩上下文       [yellow]clear[/yellow] 清除上下文
+        [cyan]⡑⣑⣈⣻⢗⢟⢞⢝⣻⣿⣿⣿⣿⣿⣿⣿⠸⣿⠿⠃⣿⣿⣿⣿⣿⣿⡿[/cyan]                    [yellow]command[/yellow] 执行Shell命令    [yellow]exit[/yellow]  退出
+        [cyan]⡵⡈⢟⢕⢕⢕⢕⣵⣿⣿⣿⣿⣿⣿⣿⣿⣿⣶⣶⣿⣿⣿⣿⣿⠿⠋⣀[/cyan]
     '''))
     # 如果发现有上下文（即上下文不为空），便把上下文打印出来
     if database.load_data()['context'] != []:
         for i in database.load_data()['context']:
             console.print(rich.markdown.Markdown(i))
+            terminal.dividing_line()
         # 记得打印这条提示
         console.print('\n[black on blue] 以上为历史消息 [/black on blue]\n')
+
+def summary() -> None:
+    '''
+    执行用户输入的summary命令。
+    '''
+    # 首先将上下文载入到变量里，方便修改
+    context_list = database.load_data()['context']
+    # 然后截取[0:config]条，生成摘要，并且插入到[0]中（最顶部）
+    context_list.insert(0, '[摘要] >> ' + core.summary(
+        database.load_data()['context'][:database.load_data()['config']['context_summary_input_len']],
+        database.load_data()['config']['context_summary_len']
+    ))
+    # 然后删除，除了摘要的config条内容
+    del context_list[1:database.load_data()['config']['context_summary_input_len']]
+    database.format_json_dump(context_list, 'database/context.json')
+    # 然后重载标题和上下文的显示
+    title_and_history()
+    console.print('\n[black on green] 上下文压缩已完成 [/black on green]\n')
+
+def user_command() -> None:
+    '''
+    执行用户输入的command命令。
+    '''
+    try:
+        cmd = console.input('[blue]$[/blue] ')
+    except KeyboardInterrupt:
+        sys.exit(0)
+    # 如果命令是空白的，则回调到本函数，重新让用户输入
+    if cmd == '':
+        print()  # 这里加个换行，好看点
+    # 先把用户输入的命令添加到上下文
+    database.add_context(f'[{time.ctime()}][{path}][用户自己执行命令] >> {cmd}')
+    # 处理cd命令，切换工作目录
+    if 'cd' in cmd:
+        cmd_output = cd_command(cmd)
+    else:
+        # 执行命令，返回执行结果
+        cmd_output = core.command_exec(cmd, path)
+    # 然后打印出运行结果并保存在上下文
+    console.print(cmd_output)
+    terminal.dividing_line()
+    database.add_context(f'[{time.ctime()}][{path}][用户或返回结果] >> {cmd_output}')
+
+def clear_context():
+    '''
+    执行用户输入的clear命令。
+    '''
+    # 将文件覆写成空列表，这里直接对文件操作，免得让dump()添油加醋
+    open('database/context.json', mode='w', encoding='UTF-8').write('[]')
+    # 然后重载标题，打印个提示，和上面一样
+    title_and_history()
+    console.print('\n[black on green] 上下文已清空 [/black on green]\n')
 
 def user_input_box() -> str | None:
     '''
@@ -103,58 +161,25 @@ def user_input_box() -> str | None:
     try:
         user_input = console.input(
             f'[black on yellow] {time.ctime()} [/black on yellow]'
-            f'[black on cyan] {path} [/black on cyan][cyan][/cyan]\n'
-            '[green]▶[/green] '
+            f'[yellow on blue][/yellow on blue]'
+            f'[black on blue] {path} [/black on blue][blue][/blue]\n'
+            f'[green]▶[/green] '
         )
     # 如果用户按了Ctrl+C的话就退出，否则traceback就糊脸了，下面的也是
     except KeyboardInterrupt:
         sys.exit(0)
-    # 开始判断是否为NinoClaw命令，或是否空白
-    if user_input == '':
-        print()  # 如果用户输入了空的，用空格隔开，避免把提示符粘在一起
-    elif user_input == 'exit':
-        sys.exit(0)
-    elif user_input == 'summary':
-        # 先定义一个空列表，用于存放列表格式的压缩结果，而不是字符串
-        summary_list = []
-        # 然后通过总结的方式压缩上下文，添加进上面的空列表
-        summary_list.append('[摘要] >> ' + core.summary(
-            database.load_data()['context'],
-            database.load_data()['config']['context_summary_len']
-        ))
-        # 然后把列表覆写到文件
-        database.format_json_dump(summary_list, 'database/context.json')
-        # 然后重载标题和上下文的显示
-        title_and_history()
-        console.print('\n[black on green] 上下文压缩已完成 [/black on green]\n')
-    elif user_input == 'clear':
-        # 将文件覆写成空列表，这里直接对文件操作，免得让dump()添油加醋
-        open('database/context.json', mode='w', encoding='UTF-8').write('[]')
-        # 然后重载标题，打印个提示，和上面一样
-        title_and_history()
-        console.print('\n[black on green] 上下文已清空 [/black on green]\n')
-    elif user_input == 'command':
-        try:
-            cmd = console.input('[blue]$[/blue] ')
-        except KeyboardInterrupt:
-            sys.exit(0)
-        # 如果命令是空白的，则回调到本函数，重新让用户输入
-        if cmd == '':
-            print()  # 这里加个换行，好看点
-        # 先把用户输入的命令添加到上下文
-        database.add_context(f'[{time.ctime()}][{path}][用户自己执行命令] >> {cmd}')
-        # 处理cd命令，切换工作目录
-        if 'cd' in cmd:
-            cmd_output = cd_command(cmd)
-        else:
-            # 执行命令，返回执行结果
-            cmd_output = core.command_exec(cmd, path)
-        # 然后打印出运行结果并保存在上下文
-        console.print(cmd_output)
-        terminal.dividing_line()
-        database.add_context(f'[{time.ctime()}][{path}][用户或返回结果] >> {cmd_output}')
-    # 如果既不是命令也不是空白，提前退出函数，返回用户输入
+    # 这个表定义了用户输入什么字段就执行什么（内部命令），只能用函数的引用和lambda函数
+    cmd_table = {
+        ''       : lambda: print(), # 如果用户输入了空的，用空格隔开，避免把提示符粘在一起
+        'exit'   : lambda: sys.exit(0),
+        'summary': summary,
+        'clear'  : clear_context,
+        'command': user_command,
+    }
+    if user_input in cmd_table:  # 当发现用户输入是上表里面的值，就执行这个函数
+        cmd_table[user_input]()     # 当然，虽然这个写法有点抽象，但的确能执行
     else:
+        # 如果既不是命令也不是空白，提前退出函数，返回用户输入
         return user_input
     return None  # 返回None，会被此函数下面的一个判断（if userinput is None）截获，便不会运行之后的逻辑
                     # 只要不提前返回user_input就没事，有这个兜着
@@ -176,7 +201,7 @@ if __name__ == '__main__':
         database.add_context(f'[{time.ctime()}][{path}][用户或返回结果] >> {user_cmd_input}')
         # 将输入（无论是用户的还是命令返回）传递给AI
         ai_output = core.call_api(core.create_prompt())
-        # 如果发现AI需要执行命令（发现包含成对标签 ）
+        # 如果发现AI需要执行命令（发现包含成对标签）
         if database.load_data()['config']['cmd_start_tag'] in ai_output \
             and database.load_data()['config']['cmd_end_tag'] in ai_output:
             user_cmd_input = handle_command(ai_output)
