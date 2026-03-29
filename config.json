@@ -1,10 +1,12 @@
 {
     "//": "== 模型和API调用策略 ==",
         "base_url"                 : "https://www.packyapi.com/v1",
-        "model"                    : "minimax-m2.5",
-        "api_time_out"             : 20,
-        "api_retry_sleep"          : 5,
-        "api_retry_num"            : 3,
+        "model"                    : "MiniMax-M2.7",
+        "api_time_out"             : 60,
+        "api_retry_sleep"          : 10,
+        "api_retry_num"            : 5,
+        "connect_check"            : true,
+        "connect_check_time_out"   : 5,
     "//": "== Shell和命令执行策略 ==",
         "shell"                    : "/usr/bin/fish",
         "shell_config"             : "/home/pinpe/.config/fish/config.fish",
@@ -18,17 +20,18 @@
         "context_summary_input_len": 40,
     "//": "== 杂项 ==",
         "home_path"                : "/home/pinpe/文档/代码和项目/ninoclaw/home",
-        "prompt_template_path"     : "/home/pinpe/文档/代码和项目/ninoclaw/prompt_template.md",
+        "prompt_template_path"     : "/home/pinpe/文档/代码和项目/ninoclaw/prompt_template/pomi.md",
+        "diary_tip_interval"       : 5,
     "//": "== 技能 ==",
         "skill": [
-            "覆写文本文件（输入“\\\\\n”才是字面量\\n，仅\\n是换行）：`edit \"<文本文件路径>\" \"<覆写内容（可多行）>\"`",
+            "覆写文本文件（输入“\\\\\\n”才是字面量的\\n，\\n和\\\\n都不是，否则会被错误解析为换行，此外使用换行符也可以换行）：`edit \"<文本文件路径>\" \"<覆写内容（可多行）>\"`",
             "访问网站：`web \"<要访问的URL>\"`",
             "与其他AI交流：`get-llm \"<发送的消息>\"`",
             "查看图片：`vision \"<图片文件路径>\"`",
             "搜索必应：`bing \"<要搜索的内容>\"`",
             "OCR文字识别：`ocr \"<图片文件路径>\"`",
             "查询天气：`weather \"<想要查询的城市>\"`",
-            "播放音频（注意有两个play）：`play play \"<音频文件路径>\"",
+            "播放音频（注意有两个play）：`play play \"<音频文件路径>\"`",
             "下载B站视频/音频：`bilibili_download \"<B站链接或BV号>\"`"
         ]
 }

@@ -6,18 +6,16 @@ app = typer.Typer()
 @app.command()
 def main(
     file_path: str = typer.Argument(..., help="要覆盖写入的文件路径"),
-    file_content: str = typer.Argument(..., help="要写入文件的新内容（输入 \n 表示实际换行符，输入 \\n 表示字面量反斜杠n）")
+    file_content: str = typer.Argument(..., help=r"要写入文件的新内容")
 ):
-    """
+    r"""
     将新的文件内容覆盖写入到指定文件路径。
 
     支持多行写入：`python edit.py <路径> "这是行1
     这是行2
     这是行3"`
 
-    转义说明：
-    - 输入 \n 会转换为实际换行符
-    - 输入 \\\n 会保留为字面量 \n（不转换）
+    转义说明：输入 \n和 \\n 会转换为实际换行符，输入 \\\n 会保留为字面量 \n（不转换）
     """
     try:
         # 处理转义：将 \n 解析为换行符，\\n 保留为 \n

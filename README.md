@@ -68,6 +68,7 @@ python main.py
 | `summary` | 压缩当前上下文，保留重要信息（调用 AI 总结）         |
 | `clear`   | 清空所有上下文历史                                 |
 | `command` | 手动执行Shell命令                                  |
+| `undo`    | 删除上一条上下文                                    |
 | `exit`    | 退出程序                                           |
 
 ## 📁 项目结构

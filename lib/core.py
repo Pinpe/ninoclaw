@@ -8,6 +8,7 @@ from lib    import database
 from lib    import terminal
 import subprocess
 import datetime
+import requests
 import time
 
 
@@ -22,31 +23,32 @@ def call_api(prompt: str) -> str:
     :param prompt: 给AI的**原始**提示词。
     '''
     global api_retry_num
-    try:
-        client = OpenAI(
-            api_key  = database.load_data()['env']['ai_api_key'],
-            base_url = database.load_data()['config']['base_url'],
-            timeout  = database.load_data()['config']['api_time_out']
-        )
-        response = client.chat.completions.create(
-            model    = database.load_data()['config']['model'],
-            stream   = False,
-            messages = [{
-                "role":    "user",
-                "content": prompt
-            }]
-        )
-        api_retry_num = 0  # 当API正常响应时，就重置重试次数
-        return response.choices[0].message.content
-    except Exception as err:
-        if api_retry_num < database.load_data()['config']['api_retry_num']:
-            # 当调用失败时，几秒后尝试重新调用
-            time.sleep(database.load_data()['config']['api_retry_sleep'])
-            api_retry_num += 1  # 增加重试次数
-            call_api(prompt)
-        else:
-            # 当然，如果重试次数超过了上限，就直接报错吧
-            raise err
+    while True:
+        try:
+            client = OpenAI(
+                api_key  = database.load_data()['env']['ai_api_key'],
+                base_url = database.load_data()['config']['base_url'],
+                timeout  = database.load_data()['config']['api_time_out']
+            )
+            response = client.chat.completions.create(
+                model    = database.load_data()['config']['model'],
+                stream   = False,
+                messages = [{
+                    "role":    "user",
+                    "content": prompt
+                }]
+            )
+            api_retry_num = 0  # 当API正常响应时，就重置重试次数
+            return response.choices[0].message.content
+        except Exception as err:
+            if api_retry_num < database.load_data()['config']['api_retry_num']:
+                # 当调用失败时，几秒后尝试重新调用
+                time.sleep(database.load_data()['config']['api_retry_sleep'])
+                api_retry_num += 1  # 增加重试次数
+                # 重新调用此函数（while True）
+            else:
+                # 当然，如果重试次数超过了上限，就直接报错吧
+                raise err
 """
 def call_api(prompt: str) -> str:
     '''
@@ -87,9 +89,11 @@ def command_exec(input: str, path: str) -> str:
     :param path: 当前所在的目录。
     '''
     time.sleep(database.load_data()['config']['cmd_sleep'])  # 这里加个阻塞，调用太快可能会被排队
+    shell_config = database.load_data()['config']['shell_config']
     try:
         output =  subprocess.run(
-            args           = [f'source {database.load_data()['config']['shell_config']} ; {input}'],
+            # 当配置为null时，返回bash空占位符（:），否则就返回source {config['shell_config']}
+            args           = [f'{':' if shell_config == None else f'source {shell_config}'} ; {input}'],
             capture_output = True,
             text           = True,
             cwd            = path,
@@ -109,7 +113,7 @@ def command_exec(input: str, path: str) -> str:
         return f'由于某些因素，命令执行器本身出现了错误：{err}'  # 这里也直接返回了错误信息，请注意捕获
 
 
-def summary(content, len: int) -> str:
+def summary(content: str, len: int) -> str:
     '''
     总结任何文本内容。
 
@@ -117,3 +121,17 @@ def summary(content, len: int) -> str:
     :param len: 总结后的长度（字），不保证完全对上。
     '''
     return call_api(f'总结以下内容，需要保留所有要点和信息，不少于{len}字：\n{content}')
+
+
+def ping(url: str) -> bool:
+    '''
+    检查某个远程URL的连通性，返回布尔值。
+    '''
+    try:
+        requests.get(
+            url, 
+            timeout = database.load_data()['config']['connect_check_time_out']
+        ).status_code
+        return True
+    except Exception:
+        return False

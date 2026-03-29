@@ -14,11 +14,12 @@ import os
 '''== 初始化 =='''
 if os.name == 'posix':
     import gnureadline  # 用于修复在Linux下input()函数不好用的问题，导入下就能用
-rich.traceback.install(show_locals=True)  # 初始化rich样式的traceback
-console        = rich.console.Console()   # 初始化rich的终端对象
-user_cmd_input = None
-path           = database.load_data()['config']['home_path']
-last_cmd       = None
+rich.traceback.install(show_locals=True)                      # 初始化rich样式的traceback
+console        = rich.console.Console()                       # 初始化rich的终端对象
+user_cmd_input = None                                         # 用户输入或命令输出，通常是给AI的，会经常改变
+path           = database.load_data()['config']['home_path']  # 当前工作路径
+last_cmd       = None                                         # 上一条AI执行的命令，用于和当前命令比对，防止死循环
+diary_tip_num  = 0                                            # 当此自增数字等于config['diary_tip_interval']时，会被下面一个判断捕获，提醒AI写日记
 
 
 '''== 内部函数 =='''
@@ -81,17 +82,17 @@ def title_and_history() -> None:
     '''
     console.clear()
     console.print(textwrap.dedent('''
-        [cyan]⣿⣆⠱⣝⡵⣝⢅⠙⣿⢕⢕⢕⢕⢝⣥⢒⠅⣿⣿⣿⡿⣳⣌⠪⡪⣡⢑[/cyan]    [yellow]███╗   ██╗██╗███╗   ██╗ ██████╗  ██████╗██╗      █████╗ ██╗    ██╗[/yellow]
-        [cyan]⣿⣿⣦⠹⣳⣳⣕⢅⠈⢗⢕⢕⢕⢕⢕⢈⢆⠟⠋⠉⠁⠉⠉⠁⠈⠼⢐[/cyan]    [yellow]████╗  ██║██║████╗  ██║██╔═══██╗██╔════╝██║     ██╔══██╗██║    ██║[/yellow]
-        [cyan]⢰⣶⣶⣦⣝⢝⢕⢕⠅⡆⢕⢕⢕⢕⢕⣴⠏⣠⡶⠛⡉⡉⡛⢶⣦⡀⠐[/cyan]    [yellow]██╔██╗ ██║██║██╔██╗ ██║██║   ██║██║     ██║     ███████║██║ █╗ ██║[/yellow]
-        [cyan]⡄⢻⢟⣿⣿⣷⣕⣕⣅⣿⣔⣕⣵⣵⣿⣿⢠⣿⢠⣮⡈⣌⠨⠅⠹⣷⡀[/cyan]    [yellow]██║╚██╗██║██║██║╚██╗██║██║   ██║██║     ██║     ██╔══██║██║███╗██║[/yellow]
-        [cyan]⡵⠟⠈⢀⣀⣀⡀⠉⢿⣿⣿⣿⣿⣿⣿⣿⣼⣿⢈⡋⠴⢿⡟⣡⡇⣿⡇[/cyan]    [yellow]██║ ╚████║██║██║ ╚████║╚██████╔╝╚██████╗███████╗██║  ██║╚███╔███╔╝[/yellow]
-        [cyan]⠁⣠⣾⠟⡉⡉⡉⠻⣦⣻⣿⣿⣿⣿⣿⣿⣿⣿⣧⠸⣿⣦⣥⣿⡇⡿⣰[/cyan]    [yellow]╚═╝  ╚═══╝╚═╝╚═╝  ╚═══╝ ╚═════╝  ╚═════╝╚══════╝╚═╝  ╚═╝ ╚══╝╚══╝ [/yellow]
+        [cyan]⣿⣆⠱⣝⡵⣝⢅⠙⣿⢕⢕⢕⢕⢝⣥⢒⠅⣿⣿⣿⡿⣳⣌⠪⡪⣡⢑[/cyan]        [yellow]███╗   ██╗██╗███╗   ██╗ ██████╗  ██████╗██╗      █████╗ ██╗    ██╗[/yellow]
+        [cyan]⣿⣿⣦⠹⣳⣳⣕⢅⠈⢗⢕⢕⢕⢕⢕⢈⢆⠟⠋⠉⠁⠉⠉⠁⠈⠼⢐[/cyan]        [yellow]████╗  ██║██║████╗  ██║██╔═══██╗██╔════╝██║     ██╔══██╗██║    ██║[/yellow]
+        [cyan]⢰⣶⣶⣦⣝⢝⢕⢕⠅⡆⢕⢕⢕⢕⢕⣴⠏⣠⡶⠛⡉⡉⡛⢶⣦⡀⠐[/cyan]        [yellow]██╔██╗ ██║██║██╔██╗ ██║██║   ██║██║     ██║     ███████║██║ █╗ ██║[/yellow]
+        [cyan]⡄⢻⢟⣿⣿⣷⣕⣕⣅⣿⣔⣕⣵⣵⣿⣿⢠⣿⢠⣮⡈⣌⠨⠅⠹⣷⡀[/cyan]        [yellow]██║╚██╗██║██║██║╚██╗██║██║   ██║██║     ██║     ██╔══██║██║███╗██║[/yellow]
+        [cyan]⡵⠟⠈⢀⣀⣀⡀⠉⢿⣿⣿⣿⣿⣿⣿⣿⣼⣿⢈⡋⠴⢿⡟⣡⡇⣿⡇[/cyan]        [yellow]██║ ╚████║██║██║ ╚████║╚██████╔╝╚██████╗███████╗██║  ██║╚███╔███╔╝[/yellow]
+        [cyan]⠁⣠⣾⠟⡉⡉⡉⠻⣦⣻⣿⣿⣿⣿⣿⣿⣿⣿⣧⠸⣿⣦⣥⣿⡇⡿⣰[/cyan]        [yellow]╚═╝  ╚═══╝╚═╝╚═╝  ╚═══╝ ╚═════╝  ╚═════╝╚══════╝╚═╝  ╚═╝ ╚══╝╚══╝ [/yellow]
         [cyan]⢰⣿⡏⣴⣌⠈⣌⠡⠈⢻⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣬⣉⣉⣁⣄⢖⢕[/cyan]
-        [cyan]⢻⣿⡇⢙⠁⠴⢿⡟⣡⡆⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣷⣵[/cyan]                        [b green]版本：3.5.0[/b green]      [b red]作者：Pinpe[/b red]
+        [cyan]⢻⣿⡇⢙⠁⠴⢿⡟⣡⡆⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣷⣵[/cyan]                        [b green]版本：3.6.0[/b green]      [b red]作者：Pinpe[/b red]
         [cyan]⣄⣻⣿⣌⠘⢿⣷⣥⣿⠇⣿⣿⣿⣿⣿⣿⠛⠻⣿⣿⣿⣿⣿⣿⣿⣿⣿[/cyan]
-        [cyan]⢄⠻⣿⣟⠿⠦⠍⠉⣡⣾⣿⣿⣿⣿⣿⣿⢸⣿⣦⠙⣿⣿⣿⣿⣿⣿⣿[/cyan]          输入：    [yellow]summary[/yellow] 压缩上下文       [yellow]clear[/yellow] 清除上下文
-        [cyan]⡑⣑⣈⣻⢗⢟⢞⢝⣻⣿⣿⣿⣿⣿⣿⣿⠸⣿⠿⠃⣿⣿⣿⣿⣿⣿⡿[/cyan]                    [yellow]command[/yellow] 执行Shell命令    [yellow]exit[/yellow]  退出
+        [cyan]⢄⠻⣿⣟⠿⠦⠍⠉⣡⣾⣿⣿⣿⣿⣿⣿⢸⣿⣦⠙⣿⣿⣿⣿⣿⣿⣿[/cyan]    输入：    [yellow]summary[/yellow] 压缩上下文       [yellow]clear[/yellow] 清除上下文    [yellow]undo[/yellow] 删除上一条上下文
+        [cyan]⡑⣑⣈⣻⢗⢟⢞⢝⣻⣿⣿⣿⣿⣿⣿⣿⠸⣿⠿⠃⣿⣿⣿⣿⣿⣿⡿[/cyan]              [yellow]command[/yellow] 执行Shell命令    [yellow]exit[/yellow]  退出
         [cyan]⡵⡈⢟⢕⢕⢕⢕⣵⣿⣿⣿⣿⣿⣿⣿⣿⣿⣶⣶⣿⣿⣿⣿⣿⠿⠋⣀[/cyan]
     '''))
     # 如果发现有上下文（即上下文不为空），便把上下文打印出来
@@ -104,7 +105,7 @@ def title_and_history() -> None:
 
 def summary() -> None:
     '''
-    执行用户输入的summary命令。
+    执行用户输入的summary命令，摘要式压缩上下文。
     '''
     # 首先将上下文载入到变量里，方便修改
     context_list = database.load_data()['context']
@@ -122,7 +123,7 @@ def summary() -> None:
 
 def user_command() -> None:
     '''
-    执行用户输入的command命令。
+    执行用户输入的command命令，手动执行shell命令。
     '''
     try:
         cmd = console.input('[blue]$[/blue] ')
@@ -131,6 +132,7 @@ def user_command() -> None:
     # 如果命令是空白的，则回调到本函数，重新让用户输入
     if cmd == '':
         print()  # 这里加个换行，好看点
+        return None  # 这里提前返回None，不知道为什么下面没有捕获
     # 先把用户输入的命令添加到上下文
     database.add_context(f'[{time.ctime()}][{path}][用户自己执行命令] >> {cmd}')
     # 处理cd命令，切换工作目录
@@ -146,13 +148,25 @@ def user_command() -> None:
 
 def clear_context():
     '''
-    执行用户输入的clear命令。
+    执行用户输入的clear命令，清空上下文。
     '''
     # 将文件覆写成空列表，这里直接对文件操作，免得让dump()添油加醋
     open('database/context.json', mode='w', encoding='UTF-8').write('[]')
     # 然后重载标题，打印个提示，和上面一样
     title_and_history()
     console.print('\n[black on green] 上下文已清空 [/black on green]\n')
+
+def undo():
+    '''
+    执行用户输入的undo命令，删除上一条上下文。
+    '''
+    # 首先将上下文载入到变量里，然后删除变量最后一个元素，最后覆写到文件里
+    context_list = database.load_data()['context']
+    del context_list[-1]
+    database.format_json_dump(context_list, 'database/context.json')
+    # 重载+打印提示
+    title_and_history()
+    console.print('\n[black on green] 已删除上一条上下文 [/black on green]\n')
 
 def user_input_box() -> str | None:
     '''
@@ -175,6 +189,7 @@ def user_input_box() -> str | None:
         'summary': summary,
         'clear'  : clear_context,
         'command': user_command,
+        'undo'   : undo
     }
     if user_input in cmd_table:  # 当发现用户输入是上表里面的值，就执行这个函数
         cmd_table[user_input]()     # 当然，虽然这个写法有点抽象，但的确能执行
@@ -184,11 +199,40 @@ def user_input_box() -> str | None:
     return None  # 返回None，会被此函数下面的一个判断（if userinput is None）截获，便不会运行之后的逻辑
                     # 只要不提前返回user_input就没事，有这个兜着
 
+@terminal.command_proceessed('正在检查网络连通性...')
+def connect_check():
+    '''
+    检查网络的连通性，并且在不可达时给出提示。
+    '''
+    # 如果用户需要启动应用时检查API联通性，就检查一下
+    if database.load_data()['config']['connect_check'] == True:
+        # 如果不通给个提示
+        if core.ping(database.load_data()['config']['base_url']) == False:
+            # 这里使用rich自己的print()而不是console的，因为会与加载动画造成未知冲突
+            rich.print('\n[black on red] 网络不可达 [/black on red]\n')
+
+def diary_tip():
+    '''
+    如果diary_tip_num到达`config['diary_tip_interval]`时，则返回系统提示，否则返回空字符串
+    '''
+    global diary_tip_num
+    # 然后检查当前diary_tip_num是否等于配置里的数
+    if diary_tip_num == database.load_data()['config']['diary_tip_interval']:
+        # 如果到了，就在给AI的输入加入系统提示，提醒随时检查日记，同时把这个数归零
+        diary_tip_num = 0
+        return '（系统提示：在完成一个任务或话题后就要检查修订日记）'
+    # 如果没有，就不用加提醒，但默默地把这个数+1，直到等于配置里的数为止
+    else:
+        diary_tip_num += 1
+        return ''
+
 
 '''== 主程序 =='''
 if __name__ == '__main__':
     # 首先打印大标题和上下文
     title_and_history()
+    # 检查网络连通性
+    connect_check()
     # 如果发现没有今天的日记，就创建一个
     database.create_diary()
     # 开始大循环
@@ -198,7 +242,10 @@ if __name__ == '__main__':
             user_cmd_input = user_input_box()
             # 再检查一遍，如果是None就把循环从头再来
             if user_cmd_input is None: continue
-        database.add_context(f'[{time.ctime()}][{path}][用户或返回结果] >> {user_cmd_input}')
+        # 执行diary_tip（日记检查）
+        diary_tip_str = diary_tip()
+        # 将用户的输入添加到上下文
+        database.add_context(f'[{time.ctime()}][{path}][用户或返回结果] >> {user_cmd_input}{diary_tip_str}')
         # 将输入（无论是用户的还是命令返回）传递给AI
         ai_output = core.call_api(core.create_prompt())
         # 如果发现AI需要执行命令（发现包含成对标签）
