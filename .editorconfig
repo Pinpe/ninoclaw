@@ -6,9 +6,10 @@ root = true
 # 通用设置
 [*]
 charset = utf-8                 # 文件编码为 UTF-8
+end_of_line = lf                # 统一使用 LF 换行符
 indent_style = space            # 缩进使用空格
 indent_size = 4                 # 缩进大小为 4 个空格
-insert_final_newline = false    # 文件末尾不插入换行
+insert_final_newline = true     # 文件末尾插入换行
 trim_trailing_whitespace = true # 删除行尾多余空格
 
 # 针对 Markdown 文件的特殊设置

@@ -3,6 +3,10 @@ import subprocess
 import re
 import os
 
+# 项目根目录
+_PROJECT_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+_DEFAULT_OUTPUT = os.path.join(_PROJECT_DIR, 'home')
+
 app = typer.Typer(name="bilibili-downloader", help="下载B站视频/音频")
 
 def extract_bv_id(input_str: str) -> str:
@@ -11,7 +15,7 @@ def extract_bv_id(input_str: str) -> str:
         return bv_match.group(0)
     return None
 
-def download_bilibili(bv_id: str, output_dir: str = "/home/pinpe/文档/代码和项目/ninoclaw/home", audio_only: bool = True) -> str:
+def download_bilibili(bv_id: str, output_dir: str = _DEFAULT_OUTPUT, audio_only: bool = True) -> str:
     os.makedirs(output_dir, exist_ok=True)
     video_url = f"https://www.bilibili.com/video/{bv_id}"
     
@@ -45,7 +49,7 @@ def download_bilibili(bv_id: str, output_dir: str = "/home/pinpe/文档/代码�
 @app.command()
 def main(
     input: str = typer.Argument(..., help="B站视频链接或BV号"),
-    output: str = typer.Option("/home/pinpe/文档/代码和项目/ninoclaw/home", "--output", "-o", help="输出目录"),
+    output: str = typer.Option(_DEFAULT_OUTPUT, "--output", "-o", help="输出目录"),
     video: bool = typer.Option(False, "--video", "-v", help="下载完整视频")
 ):
     bv_id = extract_bv_id(input)

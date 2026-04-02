@@ -1,5 +1,28 @@
+# Python
 __pycache__/
-lib/__pycache__/
-skill/__pycache__/
+*.py[cod]
+*.pyo
+*.egg-info/
+dist/
+build/
+*.egg
+
+# 环境和密钥
 env.json
-.vscode
+.env
+*.key
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# 项目特定
+home/diary/

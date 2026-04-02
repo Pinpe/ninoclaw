@@ -1,13 +1,27 @@
 import typer
 from openai import OpenAI
 import json
+import os
 
+
+# 项目根目录（skill/ 的上一级）
+_PROJECT_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
 # 创建 Typer 应用实例，用于构建 CLI 工具
 app = typer.Typer(
-    help="调用 AI API 的命令行工具",  # 工具描述
-    add_completion=False  # 关闭自动补全（简化新手使用）
+    help="调用 AI API 的命令行工具",
+    add_completion=False
 )
+
+def _load_env():
+    env_path = os.path.join(_PROJECT_DIR, 'env.json')
+    with open(env_path, encoding='UTF-8') as f:
+        return json.load(f)
+
+def _load_config():
+    config_path = os.path.join(_PROJECT_DIR, 'config.json')
+    with open(config_path, encoding='UTF-8') as f:
+        return json.load(f)
 
 def call_api(prompt: str) -> str:
     '''
@@ -16,13 +30,15 @@ def call_api(prompt: str) -> str:
     :param prompt: 给AI的**原始**提示词。
     '''
     try:
+        env = _load_env()
+        config = _load_config()
         client = OpenAI(
-            api_key=json.load(open('/home/pinpe/文档/代码和项目/ninoclaw/env.json', encoding='UTF-8'))['ai_api_key'],
-            base_url='https://www.packyapi.com/v1'
+            api_key=env['ai_api_key'],
+            base_url=config['base_url']
         )
         # 调用 OpenAI API
         response = client.chat.completions.create(
-            model="minimax-m2.5",
+            model=config['model'],
             stream=False,
             messages=[{
                 "role": "user",
