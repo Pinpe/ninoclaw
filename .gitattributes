@@ -1,9 +1,0 @@
-# 统一换行符：仓库中存储 LF，checkout 时按 OS 转换
-* text=auto eol=lf
-
-# 二进制文件不做转换
-*.png binary
-*.jpg binary
-*.jpeg binary
-*.gif binary
-*.ico binary

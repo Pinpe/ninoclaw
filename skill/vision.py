@@ -53,12 +53,12 @@ def get_vision_ai(img_base: str, prompt: str) -> str:
     # 初始化OpenAI客户端（兼容通义千问）
     client = OpenAI(
         api_key=api_key,
-        base_url="https://dashscope.aliyuncs.com/compatible-mode/v1",
+        base_url="https://www.packyapi.com/v1",
     )
     
     try:
         completion = client.chat.completions.create(
-            model="qwen3-vl-8b-instruct",
+            model="qwen3-vl-flash",
             messages=[{
                 "role": "user",
                 "content": [

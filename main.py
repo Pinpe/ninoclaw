@@ -27,12 +27,11 @@ rich.traceback.install(show_locals=True)                      # 初始化rich样
 console        = rich.console.Console()                       # 初始化rich的终端对象
 user_cmd_input = None                                         # 用户输入或命令输出，通常是给AI的，会经常改变
 path           = database.load_data()['config']['home_path']  # 当前工作路径
-last_cmd       = None                                         # 上一条AI执行的命令，用于和当前命令比对，防止死循环
 diary_tip_num  = 0                                            # 当此自增数字等于config['diary_tip_interval']时，提醒AI写日记
 
 
 '''== 内部函数 =='''
-def _is_cd_command(cmd: str) -> bool:
+def is_cd_command(cmd: str) -> bool:
     '''
     判断命令是否为cd命令。
     '''
@@ -40,67 +39,99 @@ def _is_cd_command(cmd: str) -> bool:
     return stripped == 'cd' or stripped.startswith('cd ') or stripped.startswith('cd\t')
 
 
+'''== 内部函数 =='''
 def cd_command(cmd):
     '''
     在命令交给命令执行器之前，如果发现输入的命令为cd，则可以执行这个特制的命令，更新path，不交给命令执行器。
-
+    
     :param cmd: 要执行的命令
     '''
     global path
     # 去除掉cd、双引号和首尾空格，得到目标路径
-    target = cmd.strip()[2:].replace('"', '').strip()
+    target = cmd.replace('cd', '').replace('\"', '').strip()
     # 处理 ~ 展开：如果目标路径以 ~ 开头，则替换为自定义的 HOME_DIR
     if target.startswith('~'):
-        home = database.load_data()['config']['home_path']
-        target = home + target[1:]
+        # 保留 ~ 后面的部分（如 /documents）
+        target = database.load_data()['config']['home_path'] + target[1:]
     # 拼接当前路径并获取绝对路径
     new_path = os.path.abspath(os.path.join(path, target))
     # 检查新目录是否存在且为目录
     if os.path.isdir(new_path):
         path = new_path
-        return '目录已切换：' + path
+        return f'目录已切换：{path}'
     else:
-        return '错误：目录不存在：' + new_path
+        return f'错误：目录不存在：{new_path}'
 
+def run_sub_agent(task_desc: str) -> str:
+    '''
+    唤醒子助手处理任务。子助手拥有自己独立的临时上下文，不会污染主库。
+    '''
+    global path
+    last_cmd = None
+    sub_context = [f"[主控台] >> 请完成以下任务：{task_desc}"]  # 初始化子助手的临时上下文
+    current_step = 0
+    while current_step < database.load_data()['config']['sub_agent_max_steps']:
+        current_step += 1
+        # 动态加载 void.md 作为系统提示词
+        sub_prompt = core.create_prompt(
+            database.load_data()['config']['sub_agent_prompt_template_path'],
+            sub_context
+        )
+        # 调用大模型 (使用子助手的临时上下文)
+        ai_output = core.call_api(sub_prompt['context'], sub_prompt['system'])
+        sub_context.append(f'[AI] >> {ai_output}')
+        # 判断是否返回了最终结果
+        if database.load_data()['config']['result_start_tag'] in ai_output:
+            # 提取结果
+            result_part = ai_output.split(database.load_data()['config']['result_start_tag'], 1)[1]
+            result = result_part.split(database.load_data()['config']['result_end_tag'], 1)[0].strip()
+            return str(result)
+        # 判断是否需要执行命令
+        elif database.load_data()['config']['cmd_start_tag'] in ai_output:
+            cmd_part = ai_output.split(database.load_data()['config']['cmd_start_tag'], 1)[1]
+            cmd = cmd_part.split(database.load_data()['config']['cmd_end_tag'], 1)[0].strip()
+            if cmd == last_cmd:
+                cmd_output = "错误：你正在重复执行相同的命令，你可以尝试改变策略。"
+            else:
+                last_cmd = cmd
+                # 复用原来的 cd 逻辑和命令执行逻辑
+                if is_cd_command(cmd):
+                    cmd_output = cd_command(cmd)
+                else:
+                    cmd_output = core.command_exec(cmd, path)
+            # 将执行结果追加到临时上下文中（主 Agent 看不到这些过程）
+            sub_context.append(f"[返回结果] >> {cmd_output}")
+        else:
+            # 既没有命令也没有结果标签，可能是在思考或输出错误
+            sub_context.append(f"AI输出格式错误：请务必使用标签执行命令或返回结果。")
+    return "错误：子助手执行超时（超过最大思考步数），已强制熔断，你可以优化任务要求并重新尝试。"
 
 def handle_command(ai_output: str) -> str:
     '''
-    当发现AI的回复需要执行命令时，在这里处理。
+    当发现AI的回复需要调用子助手时，在这里处理。
 
     :param ai_output: AI的输出。
     '''
-    global path, user_cmd_input, last_cmd
-    data = database.load_data()
-    cmd_start_tag = data['config']['cmd_start_tag']
-    cmd_end_tag = data['config']['cmd_end_tag']
-
-    # 分割开始标签，分离AI回复内容和命令部分
-    ai_content, cmd_part = ai_output.split(cmd_start_tag, 1)
-    # 分割结束标签，只保留标签内的命令
-    cmd = cmd_part.split(cmd_end_tag, 1)[0].strip()
-    # 打印AI回复并记录上下文
-    console.print(rich.markdown.Markdown(ai_content))
+    global path, user_cmd_input
+    # 分离出聊天内容和任务内容
+    ai_content, task_part = ai_output.split(database.load_data()['config']['task_start_tag'], 1)
+    task_desc = task_part.split(database.load_data()['config']['task_end_tag'], 1)[0].strip()
+    # 打印主 Agent 委派前的安抚话语（如果有的话）
+    if ai_content.strip():
+        console.print(rich.markdown.Markdown(ai_content))
+        terminal.dividing_line()
+        database.add_context(f'[{time.ctime()}][AI] >> {ai_output}')
+    # 阻塞运行子助手，获取纯净的结果
+    sub_result = run_sub_agent(task_desc)
     terminal.dividing_line()
-    database.add_context(
-        '[' + time.ctime() + '][AI] >> ' + ai_content
-        + cmd_start_tag + cmd + cmd_end_tag
-    )
-    # 判断AI的命令是否与上一条命令相等，防止死循环
-    if cmd == last_cmd:
-        return '错误：不能执行与上一条相同的命令，如果需要执行，你可以给命令加入多余参数或注释。此机制是为了防止你陷入无限循环。'
-    # 校验通过后，更新last命令
-    last_cmd = cmd
-    # 处理cd命令，切换工作目录
-    if _is_cd_command(cmd):
-        return cd_command(cmd)
-    # 执行命令，返回执行结果
-    return core.command_exec(cmd, path)
+    # 把子助手的结果作为“系统提示/输入”抛回给主循环，让 Pomi 根据结果总结回复
+    return sub_result
 
 def title_and_history() -> None:
     '''
     打印主程序的标题和上下文。
     '''
-    console.clear()
+    console.clear();
     console.print(textwrap.dedent('''
         [cyan]⣿⣆⠱⣝⡵⣝⢅⠙⣿⢕⢕⢕⢕⢝⣥⢒⠅⣿⣿⣿⡿⣳⣌⠪⡪⣡⢑[/cyan]        [yellow]███╗   ██╗██╗███╗   ██╗ ██████╗  ██████╗██╗      █████╗ ██╗    ██╗[/yellow]
         [cyan]⣿⣿⣦⠹⣳⣳⣕⢅⠈⢗⢕⢕⢕⢕⢕⢈⢆⠟⠋⠉⠁⠉⠉⠁⠈⠼⢐[/cyan]        [yellow]████╗  ██║██║████╗  ██║██╔═══██╗██╔════╝██║     ██╔══██╗██║    ██║[/yellow]
@@ -121,41 +152,38 @@ def title_and_history() -> None:
         for i in context:
             console.print(rich.markdown.Markdown(i))
             terminal.dividing_line()
-        console.print('\n[black on blue] 以上为历史消息 [/black on blue]\n')
+        console.print('\n[black on blue] * [/black on blue][blue] 以上为历史消息[/blue]\n')
 
 def summary() -> None:
     '''
     执行用户输入的summary命令，摘要式压缩上下文。
     '''
-    data = database.load_data()
-    context_list = data['context']
-    summary_input_len = data['config']['context_summary_input_len']
-    summary_len = data['config']['context_summary_len']
-    # 截取前N条生成摘要，插入到最顶部
+    # 首先将上下文载入到变量里，方便修改
+    context_list = database.load_data()['context']
+    # 然后截取[0:config]条，生成摘要，并且插入到[0]中（最顶部）
     context_list.insert(0, '[摘要] >> ' + core.summary(
-        context_list[:summary_input_len],
-        summary_len
+        database.load_data()['context'][:database.load_data()['config']['context_summary_input_len']],
+        database.load_data()['config']['context_summary_len']
     ))
-    # 删除已被摘要的原始条目
-    del context_list[1:summary_input_len]
+    # 然后删除，除了摘要的config条内容
+    del context_list[1:database.load_data()['config']['context_summary_input_len']]
     database.format_json_dump(context_list, 'database/context.json')
+    # 然后重载标题和上下文的显示
     title_and_history()
-    console.print('\n[black on green] 上下文压缩已完成 [/black on green]\n')
+    console.print('\n[black on green] * [/black on green][green] 上下文压缩已完成[/green]\n')
 
 def user_command() -> None:
     '''
     执行用户输入的command命令，手动执行shell命令。
     '''
-    try:
-        cmd = console.input('[blue]$[/blue] ')
-    except KeyboardInterrupt:
-        sys.exit(0)
+    cmd = console.input('[blue]$[/blue] ')
+    # 如果命令是空白的，则回调到本函数，重新让用户输入
     if cmd == '':
-        print()
-        return None
+        print()  # 这里加个换行，好看点
+        return None  # 这里提前返回None，不知道为什么下面没有捕获
     database.add_context('[' + time.ctime() + '][' + path + '][用户自己执行命令] >> ' + cmd)
     # 处理cd命令，切换工作目录
-    if _is_cd_command(cmd):
+    if is_cd_command(cmd):
         cmd_output = cd_command(cmd)
     else:
         cmd_output = core.command_exec(cmd, path)
@@ -167,47 +195,50 @@ def clear_context():
     '''
     执行用户输入的clear命令，清空上下文。
     '''
-    database.format_json_dump([], 'database/context.json')
+    # 将文件覆写成空列表，这里直接对文件操作，免得让dump()添油加醋
+    open('database/context.json', mode='w', encoding='UTF-8').write('[]')
+    # 然后重载标题，打印个提示，和上面一样
     title_and_history()
-    console.print('\n[black on green] 上下文已清空 [/black on green]\n')
+    console.print('\n[black on green] * [/black on green][green] 上下文已清空[/green]\n')
 
 def undo():
     '''
     执行用户输入的undo命令，删除上一条上下文。
     '''
+    # 将上下文载入到变量里，然后删除变量最后一个元素，最后覆写到文件里
     context_list = database.load_data()['context']
-    if context_list:
+    if context_list != []:
         del context_list[-1]
         database.format_json_dump(context_list, 'database/context.json')
     title_and_history()
-    console.print('\n[black on green] 已删除上一条上下文 [/black on green]\n')
+    console.print('\n[black on green] * [/black on green][green] 已删除上一条上下文[/green]\n')
 
 def user_input_box() -> str | None:
     '''
     用户的输入框，附带命令检查。
     '''
-    try:
-        user_input = console.input(
-            '[black on yellow] ' + time.ctime() + ' [/black on yellow]'
-            '[yellow on blue][/yellow on blue]'
-            '[black on blue] ' + path + ' [/black on blue][blue][/blue]\n'
-            '[green]▶[/green] '
-        )
-    except KeyboardInterrupt:
-        sys.exit(0)
+    user_input = console.input(
+        f'[yellow][/yellow][black on yellow] {time.ctime()} [/black on yellow]'
+        f'[yellow on blue][/yellow on blue]'
+        f'[black on blue] {path} [/black on blue][blue][/blue]\n'
+        f'[green]▶[/green] '
+    )
+    # 如果用户按了Ctrl+C的话就退出，否则traceback就糊脸了，下面的也是
+    # 这个表定义了用户输入什么字段就执行什么（内部命令），只能用函数的引用和lambda函数
     cmd_table = {
-        ''       : lambda: print(),
+        ''       : lambda: print(),  # 如果用户输入了空的，用换行隔开，避免把提示符粘在一起
         'exit'   : lambda: sys.exit(0),
         'summary': summary,
         'clear'  : clear_context,
         'command': user_command,
         'undo'   : undo
     }
-    if user_input in cmd_table:
-        cmd_table[user_input]()
+    if user_input in cmd_table:  # 当发现用户输入是上表里面的值，就执行这个函数
+        cmd_table[user_input]()  # 当然，虽然这个写法有点抽象，但的确能执行
     else:
         return user_input
-    return None
+    return None  # 返回None，会被此函数下面的一个判断（if userinput is None）截获，便不会运行之后的逻辑
+                    # 只要不提前返回user_input就没事，有这个兜着
 
 
 @terminal.command_proceessed('正在检查网络连通性...')
@@ -215,19 +246,22 @@ def connect_check():
     '''
     检查网络的连通性，并且在不可达时给出提示。
     '''
-    config = database.load_data()['config']
-    if config['connect_check']:
-        if not core.ping(config['base_url']):
-            rich.print('\n[black on red] 网络不可达 [/black on red]\n')
+    if database.load_data()['config']['connect_check']:
+        if not core.ping(database.load_data()['config']['base_url']):
+            # 这里使用rich自己的print()而不是console的，因为会与加载动画造成未知冲突
+            rich.print('\n[black on red] X [/black on red][red] 网络不可达[/red]\n')
 
 def diary_tip():
     '''
-    如果diary_tip_num到达config['diary_tip_interval']时，则返回系统提示，否则返回空字符串
+    如果diary_tip_num到达`config['diary_tip_interval]`时，则返回系统提示，否则返回空字符串
     '''
     global diary_tip_num
+    # 然后检查当前diary_tip_num是否等于配置里的数
     if diary_tip_num == database.load_data()['config']['diary_tip_interval']:
+        # 如果到了，就在给AI的输入加入系统提示，提醒随时检查日记，同时把这个数归零
         diary_tip_num = 0
         return '（系统提示：在完成一个任务或话题后就要检查修订日记）'
+    # 如果没有，就不用加提醒，但默默地把这个数+1，直到等于配置里的数为止
     else:
         diary_tip_num += 1
         return ''
@@ -235,34 +269,41 @@ def diary_tip():
 
 '''== 主程序 =='''
 if __name__ == '__main__':
-    # 切换工作目录到项目根目录，确保相对路径正确
-    os.chdir(database.PROJECT_DIR)
-    # 首先打印大标题和上下文
-    title_and_history()
-    # 检查网络连通性
-    connect_check()
-    # 如果发现没有今天的日记，就创建一个
-    database.create_diary()
-    # 开始大循环
-    while True:
-        # 当没有命令输出时，让用户输入，否则则代表有命令返回
-        if user_cmd_input is None:
-            user_cmd_input = user_input_box()
-            if user_cmd_input is None: continue
-        # 执行diary_tip（日记检查）
-        diary_tip_str = diary_tip()
-        # 将用户的输入添加到上下文
-        database.add_context('[' + time.ctime() + '][' + path + '][用户或返回结果] >> ' + user_cmd_input + diary_tip_str)
-        # 将输入传递给AI
-        ai_output = core.call_api(core.create_prompt())
-        # 如果发现AI需要执行命令（发现包含成对标签）
-        data = database.load_data()
-        cmd_start_tag = data['config']['cmd_start_tag']
-        cmd_end_tag = data['config']['cmd_end_tag']
-        if cmd_start_tag in ai_output and cmd_end_tag in ai_output:
-            user_cmd_input = handle_command(ai_output)
-        else:
-            console.print(rich.markdown.Markdown(ai_output))
-            terminal.dividing_line()
-            database.add_context('[' + time.ctime() + '][AI] >> ' + ai_output)
-            user_cmd_input = None
+    try:
+        # 首先打印大标题和上下文
+        title_and_history()
+        # 检查网络连通性
+        connect_check()
+        # 如果发现没有今天的日记，就创建一个
+        database.create_diary()
+        # 开始大循环
+        while True:
+            # 当没有命令输出时，让用户输入，否则则代表有命令返回
+            if user_cmd_input is None:
+                user_cmd_input = user_input_box()
+                if user_cmd_input is None: continue
+            # 执行diary_tip（日记检查）
+            diary_tip_str = diary_tip()
+            # 将用户的输入添加到上下文
+            database.add_context('[' + time.ctime() + '][' + path + '][用户输入或返回结果] >> ' + user_cmd_input + diary_tip_str)
+            # 创建提示词输入，然后传递给AI
+            prompt = core.create_prompt(
+                database.load_data()['config']['prompt_template_path'],
+                database.load_data()['context']
+            )
+            ai_output = core.call_api(prompt['context'], prompt['system'])
+            # 如果发现AI需要执行（发现包含成对标签）
+            if database.load_data()['config']['task_start_tag'] in ai_output \
+            and database.load_data()['config']['task_end_tag'] in ai_output:
+                user_cmd_input = handle_command(ai_output)
+            # 如果不是的话
+            else:
+                console.print(rich.markdown.Markdown(ai_output))
+                terminal.dividing_line()
+                terminal.send_notify(ai_output, '收到了新消息！')  # 完成任务或回复时显示通知
+                database.add_context('[' + time.ctime() + '][AI] >> ' + ai_output)
+                # 重置用户的输入，让下一次循环可以被输入框判断并接住
+                user_cmd_input = None
+    # 捕获用户的Ctrl+C，以便正常退出，避免报错
+    except KeyboardInterrupt:
+        sys.exit(0)

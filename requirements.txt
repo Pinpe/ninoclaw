@@ -6,5 +6,3 @@ chardet
 typer
 html5lib
 yt-dlp
-pyreadline3; sys_platform == "win32"
-gnureadline; sys_platform != "win32"

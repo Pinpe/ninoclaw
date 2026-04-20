@@ -7,6 +7,7 @@ from rich.progress import Progress, SpinnerColumn, TextColumn
 from functools     import wraps
 import rich.console
 import rich.rule
+import database
 
 
 # 初始化rich的终端对象
@@ -40,3 +41,14 @@ def dividing_line() -> None:
     '''
     console.print(rich.rule.Rule(characters='='))
     print()
+
+
+def send_notify(text: str, title: str = 'NinoClaw') -> None:
+    '''
+    若终端兼容，会在系统通知栏显示通知。
+
+    :param text: 通知内容。
+    :param title: 通知标题。
+    '''
+    if database.load_data()['config']['show_notify'] == True:
+        print(f'\x1b]777;notify;{title};{text}\x1b\\' , end='')

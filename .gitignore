@@ -1,28 +1,11 @@
-# Python
 __pycache__/
-*.py[cod]
-*.pyo
-*.egg-info/
-dist/
-build/
-*.egg
-
-# 环境和密钥
+lib/__pycache__/
+skill/__pycache__/
 env.json
-.env
-*.key
-
-# IDE
-.vscode/
-.idea/
-*.swp
-*.swo
-*~
-
-# OS
-.DS_Store
-Thumbs.db
-desktop.ini
-
-# 项目特定
+.vscode
+home/
+database/
+home/MEMORY.md
 home/diary/
+home/diary/2026-03-29.md
+database/context.json
