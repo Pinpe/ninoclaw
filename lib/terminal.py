@@ -5,9 +5,9 @@
 
 from rich.progress import Progress, SpinnerColumn, TextColumn
 from functools     import wraps
+from lib           import database
 import rich.console
 import rich.rule
-import database
 
 
 # 初始化rich的终端对象
