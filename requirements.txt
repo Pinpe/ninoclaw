@@ -1,4 +1,5 @@
 rich
+textual
 openai
 requests
 bs4

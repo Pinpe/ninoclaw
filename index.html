@@ -3,479 +3,941 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>NinoClaw - 终端里的AI少女助手</title>
-    <!-- 引入Tailwind CSS -->
-    <script src="https://cdn.tailwindcss.com"></script>
-    <!-- 引入Font Awesome图标 -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
-    <!-- 配置Tailwind自定义主题（Catppuccin Mocha配色） -->
-    <script>
-        tailwind.config = {
-            theme: {
-                extend: {
-                    colors: {
-                        // Catppuccin Mocha 配色
-                        rosewater: '#f5e0dc',
-                        flamingo: '#f2cdcd',
-                        pink: '#f5c2e7',
-                        mauve: '#cba6f7',
-                        red: '#f38ba8',
-                        maroon: '#eba0ac',
-                        peach: '#fab387',
-                        yellow: '#f9e2af',
-                        green: '#a6e3a1',
-                        teal: '#94e2d5',
-                        sky: '#89dceb',
-                        sapphire: '#74c7ec',
-                        blue: '#89b4fa',
-                        lavender: '#b4befe',
-                        text: '#cdd6f4',
-                        subtext1: '#bac2de',
-                        subtext0: '#a6adc8',
-                        overlay2: '#9399b2',
-                        overlay1: '#7f849c',
-                        overlay0: '#6c7086',
-                        surface2: '#585b70',
-                        surface1: '#45475a',
-                        surface0: '#313244',
-                        base: '#1e1e2e',
-                        mantle: '#181825',
-                        crust: '#11111b',
-                    },
-                    fontFamily: {
-                        mono: ['Fira Code', 'Consolas', 'Monaco', 'monospace'],
-                        sans: ['Inter', 'system-ui', 'sans-serif'],
-                    },
-                },
-            }
-        }
-    </script>
-    <!-- 自定义工具类 -->
-    <style type="text/tailwindcss">
-        @layer utilities {
-            .text-shadow-glow {
-                text-shadow: 0 0 8px rgba(203, 166, 247, 0.6);
-            }
-            .bg-gradient-mauve {
-                background: linear-gradient(135deg, #cba6f7 0%, #89b4fa 100%);
-            }
-            .transition-all-300 {
-                transition: all 300ms ease-in-out;
-            }
-        }
-    </style>
+    <title>🎐 NinoClaw — 梦眠的终端慵懒小窝</title>
+    <meta name="description" content="NinoClaw 是一个运行在你电脑终端里的 AI 助手程序。双脑机制，温柔陪伴，高效执行。">
     <style>
-        /* 全局样式 */
-        body {
-            scroll-behavior: smooth;
+        :root {
+            --bg-deepest: #08081a;
+            --bg-card: #10102a;
+            --bg-code: #0a0a18;
+            --bg-terminal: #0c0c1e;
+            --text-primary: #e2dcec;
+            --text-secondary: #b8b0c8;
+            --text-muted: #8a8298;
+            --accent-pink: #d4a0b8;
+            --accent-pink-soft: #e8c4d4;
+            --accent-purple: #b8a0d4;
+            --accent-lavender: #c9b8e4;
+            --accent-moon: #f5deb3;
+            --accent-moon-glow: #ffe8c0;
+            --accent-teal: #a0d4c4;
+            --border-subtle: rgba(180, 160, 200, 0.15);
+            --border-card: rgba(180, 160, 200, 0.2);
+            --glow-pink: rgba(212, 160, 184, 0.25);
+            --glow-purple: rgba(184, 160, 212, 0.2);
+            --glow-moon: rgba(245, 222, 179, 0.3);
+            --radius-sm: 8px;
+            --radius-md: 14px;
+            --radius-lg: 20px;
+            --radius-xl: 28px;
+            --font-display: 'Segoe UI', 'PingFang SC', 'Microsoft YaHei', 'Noto Sans SC', system-ui, sans-serif;
+            --font-mono: 'Cascadia Code', 'JetBrains Mono', 'Fira Code', 'SF Mono', 'Consolas', 'Monaco', 'Courier New', monospace;
+            --font-body: 'Segoe UI', 'PingFang SC', 'Microsoft YaHei', 'Noto Sans SC', system-ui, sans-serif;
+            --transition-smooth: 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            --transition-bounce: 0.5s cubic-bezier(0.34, 1.56, 0.64, 1);
         }
-        /* ASCII艺术样式 */
-        .ascii-art {
-            font-family: 'Fira Code', monospace;
-            white-space: pre;
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        html {
+            scroll-behavior: smooth;
+            font-size: 16px;
+        }
+
+        body {
+            background: var(--bg-deepest);
+            color: var(--text-primary);
+            font-family: var(--font-body);
+            line-height: 1.7;
+            overflow-x: hidden;
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
+            position: relative;
+            min-height: 100vh;
+        }
+
+        /* ── 星空背景粒子 ── */
+        .stars-container {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 0;
+        }
+        .star {
+            position: absolute;
+            border-radius: 50%;
+            background: #fff;
+            animation: twinkle var(--dur) ease-in-out infinite;
+            animation-delay: var(--delay);
+            opacity: 0;
+        }
+        @keyframes twinkle {
+            0%,
+            100% {
+                opacity: 0.15;
+                transform: scale(1);
+            }
+            40% {
+                opacity: 0.7;
+                transform: scale(1.6);
+            }
+            60% {
+                opacity: 0.25;
+                transform: scale(0.9);
+            }
+        }
+
+        /* ── 主容器 ── */
+        .main-container {
+            position: relative;
+            z-index: 1;
+            max-width: 1000px;
+            margin: 0 auto;
+            padding: 0 24px;
+        }
+
+        /* ── 导航栏 ── */
+        .navbar {
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            background: rgba(8, 8, 26, 0.75);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border-bottom: 1px solid var(--border-subtle);
+            padding: 14px 0;
+            transition: var(--transition-smooth);
+        }
+        .navbar .nav-inner {
+            max-width: 1000px;
+            margin: 0 auto;
+            padding: 0 24px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 16px;
+        }
+        .nav-brand {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-family: var(--font-display);
+            font-weight: 700;
+            font-size: 1.25rem;
+            color: var(--accent-moon);
+            text-decoration: none;
+            letter-spacing: 0.02em;
+            transition: var(--transition-smooth);
+        }
+        .nav-brand:hover {
+            color: var(--accent-moon-glow);
+            text-shadow: 0 0 24px var(--glow-moon);
+        }
+        .nav-brand .moon-icon {
+            font-size: 1.6rem;
+            animation: float-moon 3s ease-in-out infinite;
+            display: inline-block;
+        }
+        @keyframes float-moon {
+            0%,
+            100% {
+                transform: translateY(0);
+            }
+            50% {
+                transform: translateY(-6px);
+            }
+        }
+        .nav-links {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+            align-items: center;
+        }
+        .nav-links a {
+            color: var(--text-secondary);
+            text-decoration: none;
+            font-size: 0.9rem;
+            padding: 6px 14px;
+            border-radius: 20px;
+            transition: var(--transition-smooth);
+            font-weight: 500;
+            letter-spacing: 0.01em;
+        }
+        .nav-links a:hover {
+            color: var(--accent-pink-soft);
+            background: rgba(212, 160, 184, 0.08);
+        }
+        .nav-links .btn-nav-cta {
+            background: var(--accent-pink);
+            color: #1a1a2e;
+            font-weight: 600;
+            padding: 7px 18px;
+            border-radius: 22px;
+            transition: var(--transition-bounce);
+        }
+        .nav-links .btn-nav-cta:hover {
+            background: var(--accent-pink-soft);
+            color: #1a1a2e;
+            transform: scale(1.04);
+            box-shadow: 0 0 24px var(--glow-pink);
+        }
+
+        /* ── Hero ── */
+        .hero {
+            text-align: center;
+            padding: 80px 0 60px;
+            position: relative;
+        }
+        .hero-moon-large {
+            font-size: 5rem;
+            display: block;
+            animation: float-moon 4s ease-in-out infinite;
+            margin-bottom: 10px;
+            filter: drop-shadow(0 0 40px rgba(245, 222, 179, 0.35));
+            line-height: 1;
+        }
+        .hero h1 {
+            font-family: var(--font-display);
+            font-size: clamp(2.4rem, 5vw, 3.6rem);
+            font-weight: 800;
+            letter-spacing: 0.02em;
+            background: linear-gradient(135deg, var(--accent-moon-glow) 0%, var(--accent-pink-soft) 40%, var(--accent-lavender) 100%);
+            -webkit-background-clip: text;
+            background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 8px;
             line-height: 1.2;
         }
-        /* 滚动条美化 */
-        ::-webkit-scrollbar {
+        .hero .subtitle-en {
+            font-family: var(--font-mono);
+            font-size: 0.95rem;
+            color: var(--text-muted);
+            letter-spacing: 0.06em;
+            margin-bottom: 20px;
+        }
+        .hero .tagline {
+            font-size: 1.15rem;
+            color: var(--text-secondary);
+            max-width: 800px;
+            margin: 0 auto 36px;
+            font-style: italic;
+            line-height: 1.8;
+            position: relative;
+        }
+        .hero .tagline::before {
+            content: '“';
+            font-size: 2.5rem;
+            color: var(--accent-pink);
+            position: absolute;
+            left: -30px;
+            top: -10px;
+            opacity: 0.6;
+            font-family: Georgia, serif;
+        }
+        .hero .tagline::after {
+            content: '”';
+            font-size: 2.5rem;
+            color: var(--accent-pink);
+            position: absolute;
+            right: -30px;
+            bottom: -20px;
+            opacity: 0.6;
+            font-family: Georgia, serif;
+        }
+        .hero-buttons {
+            display: flex;
+            gap: 14px;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 12px 26px;
+            border-radius: 28px;
+            font-weight: 600;
+            font-size: 1rem;
+            text-decoration: none;
+            letter-spacing: 0.02em;
+            transition: var(--transition-bounce);
+            cursor: pointer;
+            border: none;
+        }
+        .btn-primary {
+            background: var(--accent-pink);
+            color: #1a1a2e;
+            box-shadow: 0 4px 20px var(--glow-pink);
+        }
+        .btn-primary:hover {
+            background: var(--accent-pink-soft);
+            transform: translateY(-2px);
+            box-shadow: 0 8px 32px var(--glow-pink);
+        }
+        .btn-outline {
+            background: transparent;
+            border: 2px solid var(--border-card);
+            color: var(--text-primary);
+        }
+        .btn-outline:hover {
+            border-color: var(--accent-purple);
+            background: rgba(184, 160, 212, 0.06);
+            box-shadow: 0 0 20px var(--glow-purple);
+        }
+        .btn .icon-github {
+            width: 20px;
+            height: 20px;
+            display: inline-block;
+        }
+
+        /* ── 通用区块 ── */
+        .section {
+            padding: 60px 0;
+            position: relative;
+        }
+        .section-label {
+            font-family: var(--font-mono);
+            font-size: 0.8rem;
+            text-transform: uppercase;
+            letter-spacing: 0.12em;
+            color: var(--accent-teal);
+            margin-bottom: 10px;
+            display: block;
+        }
+        .section-title {
+            font-family: var(--font-display);
+            font-size: clamp(1.8rem, 3.5vw, 2.4rem);
+            font-weight: 700;
+            margin-bottom: 16px;
+            color: var(--text-primary);
+        }
+        .section-desc {
+            color: var(--text-secondary);
+            max-width: 650px;
+            margin-bottom: 36px;
+            font-size: 1.05rem;
+        }
+
+        /* ── 双脑卡片 ── */
+        .duo-cards {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 24px;
+            align-items: stretch;
+        }
+        @media (max-width: 680px) {
+            .duo-cards {
+                grid-template-columns: 1fr;
+            }
+        }
+        .duo-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border-card);
+            border-radius: var(--radius-lg);
+            padding: 32px 28px;
+            transition: var(--transition-smooth);
+            position: relative;
+            overflow: hidden;
+        }
+        .duo-card::before {
+            content: '';
+            position: absolute;
+            top: -40px;
+            right: -40px;
+            width: 120px;
+            height: 120px;
+            border-radius: 50%;
+            filter: blur(50px);
+            opacity: 0.25;
+            pointer-events: none;
+            transition: var(--transition-smooth);
+        }
+        .duo-card.card-yume::before {
+            background: var(--accent-pink);
+        }
+        .duo-card.card-void::before {
+            background: var(--accent-purple);
+        }
+        .duo-card:hover {
+            border-color: rgba(200, 180, 220, 0.4);
+            transform: translateY(-3px);
+            box-shadow: 0 12px 40px rgba(0, 0, 0, 0.4);
+        }
+        .duo-card:hover::before {
+            opacity: 0.4;
+        }
+        .duo-card .card-emoji {
+            font-size: 2.6rem;
+            margin-bottom: 10px;
+            display: block;
+        }
+        .duo-card h3 {
+            font-family: var(--font-display);
+            font-size: 1.4rem;
+            font-weight: 700;
+            margin-bottom: 6px;
+            color: var(--text-primary);
+        }
+        .duo-card .card-role {
+            font-size: 0.85rem;
+            color: var(--text-muted);
+            margin-bottom: 12px;
+            letter-spacing: 0.04em;
+        }
+        .duo-card p {
+            color: var(--text-secondary);
+            font-size: 0.95rem;
+            line-height: 1.7;
+        }
+        .duo-card .highlight-tag {
+            display: inline-block;
+            background: rgba(212, 160, 184, 0.12);
+            color: var(--accent-pink-soft);
+            padding: 3px 10px;
+            border-radius: 12px;
+            font-size: 0.8rem;
+            margin-top: 8px;
+            font-weight: 500;
+        }
+        .card-yume .highlight-tag {
+            background: rgba(212, 160, 184, 0.15);
+            color: var(--accent-pink-soft);
+        }
+        .card-void .highlight-tag {
+            background: rgba(184, 160, 212, 0.15);
+            color: var(--accent-lavender);
+        }
+
+        /* ── 技能网格 ── */
+        .skills-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+            gap: 16px;
+        }
+        .skill-chip {
+            background: var(--bg-card);
+            border: 1px solid var(--border-subtle);
+            border-radius: var(--radius-md);
+            padding: 18px 16px;
+            text-align: center;
+            transition: var(--transition-smooth);
+            cursor: default;
+            font-family: var(--font-mono);
+            font-size: 0.85rem;
+            color: var(--text-secondary);
+            letter-spacing: 0.03em;
+        }
+        .skill-chip:hover {
+            border-color: var(--accent-teal);
+            color: var(--accent-teal);
+            box-shadow: 0 0 20px rgba(160, 212, 196, 0.12);
+            transform: translateY(-2px);
+        }
+        .skill-chip .skill-icon {
+            font-size: 1.8rem;
+            display: block;
+            margin-bottom: 6px;
+        }
+
+        /* ── 终端模拟器 ── */
+        .terminal-window {
+            background: var(--bg-terminal);
+            border: 1px solid var(--border-card);
+            border-radius: var(--radius-lg);
+            overflow: hidden;
+            box-shadow: 0 8px 40px rgba(0, 0, 0, 0.5);
+            margin: 0 auto;
+            max-width: 850px;
+        }
+        .terminal-window .term-header {
+            background: rgba(30, 30, 50, 0.8);
+            padding: 12px 16px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            border-bottom: 1px solid var(--border-subtle);
+        }
+        .term-dot {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+        }
+        .term-dot.red {
+            background: #ff5f57;
+        }
+        .term-dot.yellow {
+            background: #ffbd2e;
+        }
+        .term-dot.green {
+            background: #27c93f;
+        }
+        .term-title {
+            margin-left: 10px;
+            font-family: var(--font-mono);
+            font-size: 0.75rem;
+            color: var(--text-muted);
+            letter-spacing: 0.05em;
+        }
+        .term-body {
+            padding: 20px 22px;
+            font-family: var(--font-mono);
+            font-size: 0.88rem;
+            color: #c8d6e5;
+            line-height: 1.9;
+            overflow-x: auto;
+            white-space: pre-wrap;
+            word-break: break-all;
+            tab-size: 4;
+            -moz-tab-size: 4;
+        }
+        .term-body .prompt {
+            color: var(--accent-teal);
+        }
+        .term-body .cmd-highlight {
+            color: var(--accent-moon-glow);
+        }
+        .term-body .comment {
+            color: #6a7080;
+        }
+        .term-body .output-dim {
+            color: #9098a8;
+        }
+        .term-body .cursor-blink {
+            display: inline-block;
             width: 8px;
-            height: 8px;
+            height: 16px;
+            background: var(--accent-pink);
+            animation: blink-cursor 0.8s step-end infinite;
+            vertical-align: text-bottom;
+            margin-left: 2px;
+            border-radius: 1px;
         }
-        ::-webkit-scrollbar-track {
-            background: #181825;
+        @keyframes blink-cursor {
+            0%,
+            100% {
+                opacity: 1;
+            }
+            50% {
+                opacity: 0;
+            }
         }
-        ::-webkit-scrollbar-thumb {
-            background: #585b70;
-            border-radius: 4px;
+
+        /* ── 代码块通用 ── */
+        .code-block {
+            background: var(--bg-code);
+            border: 1px solid var(--border-subtle);
+            border-radius: var(--radius-md);
+            padding: 20px 22px;
+            font-family: var(--font-mono);
+            font-size: 0.85rem;
+            overflow-x: auto;
+            line-height: 1.8;
+            color: #c8d6e5;
+            position: relative;
+            white-space: pre-wrap;
+            tab-size: 4;
+            -moz-tab-size: 4;
         }
-        ::-webkit-scrollbar-thumb:hover {
-            background: #cba6f7;
+        .code-block .code-comment {
+            color: #6a7080;
+        }
+        .code-block .code-key {
+            color: var(--accent-teal);
+        }
+        .code-block .code-val {
+            color: var(--accent-moon-glow);
+        }
+        .code-block .code-str {
+            color: var(--accent-pink-soft);
+        }
+
+        /* ── 引用块 ── */
+        .quote-block {
+            background: rgba(245, 222, 179, 0.04);
+            border-left: 3px solid var(--accent-moon);
+            padding: 16px 22px;
+            border-radius: 0 var(--radius-sm) var(--radius-sm) 0;
+            margin: 20px 0;
+            font-style: italic;
+            color: var(--text-secondary);
+        }
+
+        /* ── Footer ── */
+        .footer {
+            text-align: center;
+            padding: 40px 0 32px;
+            border-top: 1px solid var(--border-subtle);
+            margin-top: 40px;
+            color: var(--text-muted);
+            font-size: 0.85rem;
+        }
+        .footer a {
+            color: var(--accent-pink);
+            text-decoration: none;
+            transition: var(--transition-smooth);
+        }
+        .footer a:hover {
+            color: var(--accent-pink-soft);
+            text-decoration: underline;
+        }
+        .footer .license-badge {
+            display: inline-block;
+            background: rgba(160, 212, 196, 0.1);
+            color: var(--accent-teal);
+            padding: 4px 12px;
+            border-radius: 14px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            letter-spacing: 0.05em;
+            margin-top: 8px;
+        }
+
+        /* ── zZz 浮动动画 ── */
+        .zzz-float {
+            display: inline-block;
+            animation: zzz-float-anim 2.5s ease-in-out infinite;
+            pointer-events: none;
+            opacity: 0.5;
+        }
+        .zzz-float.delay-1 {
+            animation-delay: 0.4s;
+        }
+        .zzz-float.delay-2 {
+            animation-delay: 0.9s;
+        }
+        @keyframes zzz-float-anim {
+            0%,
+            100% {
+                transform: translateY(0) scale(1);
+                opacity: 0.45;
+            }
+            30% {
+                transform: translateY(-14px) scale(1.15);
+                opacity: 0.7;
+            }
+            60% {
+                transform: translateY(-6px) scale(1.05);
+                opacity: 0.55;
+            }
+        }
+
+        /* ── 响应式微调 ── */
+        @media (max-width: 768px) {
+            .hero {
+                padding: 50px 0 40px;
+            }
+            .hero-moon-large {
+                font-size: 3.5rem;
+            }
+            .section {
+                padding: 40px 0;
+            }
+            .navbar .nav-inner {
+                flex-wrap: wrap;
+                gap: 8px;
+                justify-content: center;
+            }
+            .nav-links a {
+                font-size: 0.8rem;
+                padding: 5px 10px;
+            }
+            .hero .tagline::before,
+            .hero .tagline::after {
+                font-size: 1.6rem;
+            }
+            .hero .tagline::before {
+                left: -16px;
+                top: -4px;
+            }
+            .hero .tagline::after {
+                right: -16px;
+                bottom: -12px;
+            }
+            .skills-grid {
+                grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+                gap: 10px;
+            }
+            .term-body {
+                font-size: 0.78rem;
+                padding: 14px 16px;
+            }
+            .code-block {
+                font-size: 0.78rem;
+                padding: 14px 16px;
+            }
+        }
+        @media (max-width: 480px) {
+            .hero h1 {
+                font-size: 1.8rem;
+            }
+            .duo-cards {
+                grid-template-columns: 1fr;
+            }
+            .hero-buttons {
+                flex-direction: column;
+                align-items: center;
+            }
+            .btn {
+                width: 100%;
+                justify-content: center;
+            }
         }
     </style>
 </head>
-<body class="bg-base text-text font-sans antialiased">
-    <!-- 导航栏 -->
-    <header class="sticky top-0 z-50 bg-crust/90 backdrop-blur-sm border-b border-surface0">
-        <div class="container mx-auto px-4 py-3 flex justify-between items-center">
-            <a href="#" class="flex items-center gap-2">
-                <span class="text-mauve text-2xl font-bold text-shadow-glow">🎐NinoClaw</span>
+<body>
+
+    <!-- ═══════════ 星空背景 ═══════════ -->
+    <div class="stars-container" id="starsContainer" aria-hidden="true"></div>
+
+    <!-- ═══════════ 导航栏 ═══════════ -->
+    <nav class="navbar">
+        <div class="nav-inner">
+            <a href="#" class="nav-brand">
+                <span class="moon-icon">🎐</span> NinoClaw
             </a>
-            <nav class="hidden md:flex gap-6">
-                <a href="#features" class="text-subtext0 hover:text-mauve transition-all-300">功能</a>
-                <a href="#installation" class="text-subtext0 hover:text-mauve transition-all-300">安装</a>
-                <a href="#usage" class="text-subtext0 hover:text-mauve transition-all-300">使用</a>
-                <a href="#structure" class="text-subtext0 hover:text-mauve transition-all-300">结构</a>
-                <a href="https://github.com/Pinpe/ninoclaw" target="_blank" class="flex items-center gap-1 text-subtext0 hover:text-mauve transition-all-300">
-                    <i class="fab fa-github"></i> GitHub
-                </a>
-            </nav>
-            <!-- 移动端菜单按钮 -->
-            <button id="menuBtn" class="md:hidden text-text hover:text-mauve transition-all-300">
-                <i class="fas fa-bars text-xl"></i>
-            </button>
-        </div>
-        <!-- 移动端菜单 -->
-        <div id="mobileMenu" class="md:hidden hidden bg-mantle border-b border-surface0">
-            <div class="container mx-auto px-4 py-2 flex flex-col gap-3">
-                <a href="#features" class="py-2 text-subtext0 hover:text-mauve transition-all-300">功能</a>
-                <a href="#installation" class="py-2 text-subtext0 hover:text-mauve transition-all-300">安装</a>
-                <a href="#usage" class="py-2 text-subtext0 hover:text-mauve transition-all-300">使用</a>
-                <a href="#structure" class="py-2 text-subtext0 hover:text-mauve transition-all-300">结构</a>
-                <a href="https://github.com/Pinpe/ninoclaw" target="_blank" class="py-2 flex items-center gap-1 text-subtext0 hover:text-mauve transition-all-300">
-                    <i class="fab fa-github"></i> GitHub
+            <div class="nav-links">
+                <a href="#about">关于</a>
+                <a href="#skills">技能</a>
+                <a href="#install">安装</a>
+                <a href="#commands">命令</a>
+                <a href="https://github.com/Pinpe/ninoclaw" target="_blank" rel="noopener" class="btn-nav-cta">
+                    ⭐ GitHub
                 </a>
             </div>
         </div>
-    </header>
+    </nav>
 
-    <main>
-        <!-- 英雄区 -->
-        <section class="py-20 md:py-28 bg-gradient-to-b from-mantle to-base">
-            <div class="container mx-auto px-4 flex flex-col md:flex-row items-center gap-8">
-                <div class="w-full md:w-1/2 space-y-6">
-                    <h1 class="text-4xl md:text-5xl lg:text-6xl font-bold">
-                        <span class="text-mauve"> 🎐NinoClaw</span>
-                        <span class="block text-2xl md:text-3xl mt-2 text-subtext1">终端里的AI少女助手</span>
-                    </h1>
-                    <p class="text-subtext0 text-lg">
-                        将大语言模型与系统命令执行能力结合，让活泼的虚拟少女 pomi 成为你终端里的贴心助手，帮你对话、执行命令、管理文件。
-                    </p>
-                    <div class="flex flex-wrap gap-4 pt-4">
-                        <a href="#installation" class="bg-mauve text-crust px-6 py-3 rounded-lg font-medium hover:bg-mauve/90 transition-all-300 shadow-lg shadow-mauve/20">
-                            开始使用
-                        </a>
-                        <a href="https://github.com/Pinpe/ninoclaw" target="_blank" class="bg-surface0 text-text px-6 py-3 rounded-lg font-medium hover:bg-surface1 transition-all-300 flex items-center gap-2">
-                            <i class="fab fa-github"></i> 查看源码
-                        </a>
-                    </div>
-                </div>
-                <div class="w-full md:w-1/2 bg-crust rounded-xl p-4 border border-surface1 shadow-2xl shadow-crust/50">
-                    <div class="bg-base rounded-lg p-4 font-mono text-sm">
-                        <div class="text-green">➜ ~ python main.py</div>
-                        <div class="ascii-art text-pink mt-2">
-███╗   ██╗██╗███╗   ██╗ ██████╗ 
-████╗  ██║██║████╗  ██║██╔═══██╗
-██╔██╗ ██║██║██╔██╗ ██║██║   ██║
-██║╚██╗██║██║██║╚██╗██║██║   ██║
-██║ ╚████║██║██║ ╚████║╚██████╔╝
-╚═╝  ╚═══╝╚═╝╚═╝  ╚═══╝ ╚═════╝ 
+    <!-- ═══════════ 主内容区 ═══════════ -->
+    <div class="main-container">
 
-                        </div>
-                        <div class="text-lavender mt-2">pomi 🐾: 嗨～我是你的终端AI助手，有什么可以帮你的吗？</div>
-                        <div class="mt-2">
-                            <span class="text-yellow">>> </span>
-                            <span class="text-text">帮我列出当前目录的文件</span>
-                        </div>
-                        <div class="text-teal mt-1">pomi 🐾: 好的～这就为你执行命令 😜 command: ls -la</div>
-                        <div class="bg-surface0 rounded-md p-2 mt-1 text-subtext0">
-                            total 48<br>
-                            drwxr-xr-x  6 user  staff   192 Mar  8 10:00 .<br>
-                            drwxr-xr-x  5 user  staff   160 Mar  8 09:58 ..<br>
-                            -rw-r--r--  1 user  staff   120 Mar  8 09:59 main.py<br>
-                            -rw-r--r--  1 user  staff  2456 Mar  8 09:59 core.py
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </section>
-
-        <!-- 功能特点区 -->
-        <section id="features" class="py-16 bg-base">
-            <div class="container mx-auto px-4">
-                <h2 class="text-3xl font-bold text-center mb-12">
-                    <span class="text-mauve">✨</span> 功能特点
-                </h2>
-                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-                    <!-- 功能卡片1 -->
-                    <div class="bg-mantle rounded-xl p-6 border border-surface0 hover:border-mauve/50 transition-all-300">
-                        <div class="text-mauve text-3xl mb-4">
-                            <i class="fas fa-comments"></i>
-                        </div>
-                        <h3 class="text-xl font-semibold mb-2">智能对话</h3>
-                        <p class="text-subtext0">基于 OpenAI API 兼容的模型，支持自定义模型和接口地址，和 pomi 轻松聊天。</p>
-                    </div>
-                    <!-- 功能卡片2 -->
-                    <div class="bg-mantle rounded-xl p-6 border border-surface0 hover:border-mauve/50 transition-all-300">
-                        <div class="text-pink text-3xl mb-4">
-                            <i class="fas fa-terminal"></i>
-                        </div>
-                        <h3 class="text-xl font-semibold mb-2">命令执行</h3>
-                        <p class="text-subtext0">AI 通过 <code class="bg-surface0 px-1 rounded text-peach">command:</code> 标签调用系统 Shell，返回执行结果。</p>
-                    </div>
-                    <!-- 功能卡片3 -->
-                    <div class="bg-mantle rounded-xl p-6 border border-surface0 hover:border-mauve/50 transition-all-300">
-                        <div class="text-green text-3xl mb-4">
-                            <i class="fas fa-history"></i>
-                        </div>
-                        <h3 class="text-xl font-semibold mb-2">上下文管理</h3>
-                        <p class="text-subtext0">自动保存对话历史，支持压缩（summary）或清空（clear），控制 token 消耗。</p>
-                    </div>
-                    <!-- 功能卡片4 -->
-                    <div class="bg-mantle rounded-xl p-6 border border-surface0 hover:border-mauve/50 transition-all-300">
-                        <div class="text-blue text-3xl mb-4">
-                            <i class="fas fa-folder-open"></i>
-                        </div>
-                        <h3 class="text-xl font-semibold mb-2">工作目录保持</h3>
-                        <p class="text-subtext0">AI 执行的命令在当前工作目录运行，支持 cd 命令（仅限绝对路径）。</p>
-                    </div>
-                    <!-- 功能卡片5 -->
-                    <div class="bg-mantle rounded-xl p-6 border border-surface0 hover:border-mauve/50 transition-all-300">
-                        <div class="text-yellow text-3xl mb-4">
-                            <i class="fas fa-brain"></i>
-                        </div>
-                        <h3 class="text-xl font-semibold mb-2">记忆机制</h3>
-                        <p class="text-subtext0">专属 <code class="bg-surface0 px-1 rounded text-peach">MEMORY.md</code> 文件，写入重要信息，实现长期记忆。</p>
-                    </div>
-                    <!-- 功能卡片6 -->
-                    <div class="bg-mantle rounded-xl p-6 border border-surface0 hover:border-mauve/50 transition-all-300">
-                        <div class="text-sky text-3xl mb-4">
-                            <i class="fas fa-puzzle-piece"></i>
-                        </div>
-                        <h3 class="text-xl font-semibold mb-2">技能扩展</h3>
-                        <p class="text-subtext0">自定义可调用的外部命令列表，AI 能通过 <code class="bg-surface0 px-1 rounded text-peach">--help</code> 查看用法。</p>
-                    </div>
-                </div>
-            </div>
-        </section>
-
-        <!-- 安装步骤区 -->
-        <section id="installation" class="py-16 bg-mantle">
-            <div class="container mx-auto px-4">
-                <h2 class="text-3xl font-bold text-center mb-12">
-                    <span class="text-mauve">📦</span> 安装
-                </h2>
-                <div class="max-w-3xl mx-auto space-y-8">
-                    <!-- 环境要求 -->
-                    <div class="bg-base rounded-xl p-6 border border-surface0">
-                        <h3 class="text-xl font-semibold mb-4 text-lavender">环境要求</h3>
-                        <ul class="list-disc list-inside space-y-2 text-subtext0">
-                            <li>Python 3.8+</li>
-                            <li>兼容 OpenAI API 的模型接口（OpenAI、Azure OpenAI、vLLM 等）</li>
-                        </ul>
-                    </div>
-                    <!-- 安装步骤 -->
-                    <div class="bg-base rounded-xl p-6 border border-surface0">
-                        <h3 class="text-xl font-semibold mb-4 text-lavender">安装步骤</h3>
-                        <ol class="space-y-6">
-                            <li class="space-y-2">
-                                <span class="font-medium text-text">1. 克隆仓库或下载源码</span>
-                                <div class="bg-crust rounded-lg p-4 font-mono text-sm text-green overflow-x-auto">
-                                    git clone https://github.com/yourname/ninoclaw.git<br>
-                                    cd ninoclaw
-                                </div>
-                            </li>
-                            <li class="space-y-2">
-                                <span class="font-medium text-text">2. 安装依赖</span>
-                                <div class="bg-crust rounded-lg p-4 font-mono text-sm text-green overflow-x-auto">
-                                    pip install -r requirements.txt
-                                </div>
-                                <p class="text-subtext0 text-sm">若无 requirements.txt，手动安装：</p>
-                                <div class="bg-crust rounded-lg p-4 font-mono text-sm text-green overflow-x-auto">
-                                    pip install gnureadline openai rich
-                                </div>
-                                <div class="bg-surface0/50 rounded-lg p-3 text-sm text-subtext0 mt-2">
-                                    <i class="fas fa-info-circle text-sapphire mr-1"></i>
-                                    <span>gnureadline 用于改善 Linux 下 input() 体验，Windows 可安装 pyreadline3 或忽略</span>
-                                </div>
-                            </li>
-                            <li class="space-y-2">
-                                <span class="font-medium text-text">3. 配置技能（skill）</span>
-                                <p class="text-subtext0 text-sm">手动在 shell 配置中添加别名：</p>
-                                <div class="bg-crust rounded-lg p-4 font-mono text-sm text-green overflow-x-auto">
-                                    alias edit "/home/pinpe/文档/代码和项目/ninoclaw/skill/edit.py"<br>
-                                    alias web "python /home/pinpe/文档/代码和项目/ninoclaw/skill/web.py"<br>
-                                    alias get-llm "python /home/pinpe/文档/代码和项目/ninoclaw/skill/get_llm.py"<br>
-                                    alias vision "python /home/pinpe/文档/代码和项目/ninoclaw/skill/vision.py"
-                                </div>
-                            </li>
-                        </ol>
-                    </div>
-                </div>
-            </div>
-        </section>
-
-        <!-- 使用方法区 -->
-        <section id="usage" class="py-16 bg-base">
-            <div class="container mx-auto px-4">
-                <h2 class="text-3xl font-bold text-center mb-12">
-                    <span class="text-mauve">🚀</span> 使用方法
-                </h2>
-                <div class="max-w-3xl mx-auto space-y-8">
-                    <!-- 启动程序 -->
-                    <div class="bg-mantle rounded-xl p-6 border border-surface0">
-                        <h3 class="text-xl font-semibold mb-4 text-lavender">启动程序</h3>
-                        <div class="bg-crust rounded-lg p-4 font-mono text-sm text-green overflow-x-auto">
-                            python main.py
-                        </div>
-                        <p class="text-subtext0 mt-4">启动后显示 ASCII 艺术标题和历史上下文，进入交互模式（输入提示符：<code class="bg-surface0 px-1 rounded text-peach">>></code>）。</p>
-                    </div>
-                    <!-- 内置命令 -->
-                    <div class="bg-mantle rounded-xl p-6 border border-surface0">
-                        <h3 class="text-xl font-semibold mb-4 text-lavender">内置命令</h3>
-                        <div class="overflow-x-auto">
-                            <table class="w-full text-sm text-left">
-                                <thead class="text-subtext1 bg-surface0">
-                                    <tr>
-                                        <th class="px-4 py-3 rounded-l-lg">命令</th>
-                                        <th class="px-4 py-3 rounded-r-lg">作用</th>
-                                    </tr>
-                                </thead>
-                                <tbody class="text-subtext0">
-                                    <tr class="border-b border-surface0">
-                                        <td class="px-4 py-3 font-mono text-peach">summary</td>
-                                        <td class="px-4 py-3">压缩当前上下文，保留重要信息（调用 AI 总结）</td>
-                                    </tr>
-                                    <tr class="border-b border-surface0">
-                                        <td class="px-4 py-3 font-mono text-peach">clear</td>
-                                        <td class="px-4 py-3">清空所有上下文历史</td>
-                                    </tr>
-                                    <tr class="border-b border-surface0">
-                                        <td class="px-4 py-3 font-mono text-peach">command</td>
-                                        <td class="px-4 py-3">手动执行Shell命令</td>
-                                    </tr>
-                                    <tr class="border-b border-surface0">
-                                        <td class="px-4 py-3 font-mono text-peach">undo/td>
-                                        <td class="px-4 py-3">删除上一条上下文</td>
-                                    </tr>
-                                    <tr>
-                                        <td class="px-4 py-3 font-mono text-peach">exit</td>
-                                        <td class="px-4 py-3">退出程序</td>
-                                    </tr>
-                                </tbody>
-                            </table>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </section>
-
-        <!-- 项目结构区 -->
-        <section id="structure" class="py-16 bg-mantle">
-            <div class="container mx-auto px-4">
-                <h2 class="text-3xl font-bold text-center mb-12">
-                    <span class="text-mauve">📁</span> 项目结构
-                </h2>
-                <div class="max-w-2xl mx-auto bg-base rounded-xl p-6 border border-surface0 font-mono text-sm">
-                    <pre class="text-subtext0 whitespace-pre-wrap">
-文档/代码和项目/ninoclaw/
-├── config.json
-├── redame_src
-│   └── image.png
-├── home
-│   ├── MEMORY.md
-│   └── diary
-│       ├── 2026-03-09.md
-├── LICENSE
-├── skill
-│   ├── get_llm.py
-│   ├── edit.py
-│   ├── web.py
-│   └── vision.py
-├── main.py
-├── env.json
-├── database
-│   └── context.json
-├── README.md
-├── lib
-│   ├── database.py
-│   ├── terminal.py
-│   └── core.py
-└── index.html
-                    </pre>
-                </div>
-            </div>
-        </section>
-
-        <!-- 已知问题和许可证 -->
-        <section class="py-16 bg-base">
-            <div class="container mx-auto px-4 max-w-3xl">
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
-                    <!-- 已知问题 -->
-                    <div class="bg-mantle rounded-xl p-6 border border-surface0">
-                        <h3 class="text-xl font-semibold mb-4 text-lavender">
-                            <i class="fas fa-exclamation-triangle text-peach mr-2"></i>已知问题
-                        </h3>
-                        <ul class="list-disc list-inside space-y-2 text-subtext0 text-sm">
-                            <li>Shell 配置文件中的交互式命令可能导致阻塞</li>
-                        </ul>
-                    </div>
-                    <!-- 许可证 -->
-                    <div class="bg-mantle rounded-xl p-6 border border-surface0">
-                        <h3 class="text-xl font-semibold mb-4 text-lavender">
-                            <i class="fas fa-file-contract text-sky mr-2"></i>许可证
-                        </h3>
-                        <p class="text-subtext0">本项目采用 <span class="text-mauve font-medium">GPL-3.0</span> 许可证，详见 LICENSE 文件。</p>
-                        <p class="text-subtext0 mt-4">欢迎提交 Issue 和 Pull Request，贡献代码！</p>
-                    </div>
-                </div>
-            </div>
-        </section>
-    </main>
-
-    <!-- 页脚 -->
-    <footer class="bg-crust border-t border-surface0 py-8">
-        <div class="container mx-auto px-4 text-center">
-            <p class="text-subtext0">
-                <span class="text-mauve font-medium">NinoClaw</span> —— 让 AI 住在你的终端里，成为你的贴心小助手！🎉
+        <!-- ── Hero ── -->
+        <header class="hero">
+            <span class="hero-moon-large" aria-hidden="true">🎐</span>
+            <h1>NinoClaw</h1>
+            <p class="subtitle-en">— 梦眠的终端慵懒小窝 —</p>
+            <p class="tagline">
+                呼啊……你敲键盘的声音，把我唤醒啦。<br>又是任务吗？交给后台的小帮手去处理吧。我会在这儿，乖乖地、软乎乎地陪着你……
+                <span class="zzz-float">z</span><span class="zzz-float delay-1">Z</span><span class="zzz-float delay-2">z</span>
             </p>
-            <p class="text-overlay0 text-sm mt-4">
-                © 2026 NinoClaw | 基于 Catppuccin Mocha 配色 | <a href="https://github.com/Pinpe/ninoclaw" class="text-lavender hover:text-mauve transition-all-300">GitHub</a>
+            <div class="hero-buttons">
+                <a href="https://github.com/Pinpe/ninoclaw" target="_blank" rel="noopener" class="btn btn-primary">
+                    <svg class="icon-github" viewBox="0 0 24 24" fill="currentColor"><path d="M12 0C5.37 0 0 5.37 0 12c0 5.3 3.438 9.8 8.205 11.385.6.113.82-.258.82-.577 0-.285-.01-1.04-.015-2.04-3.338.724-4.042-1.61-4.042-1.61-.546-1.385-1.335-1.755-1.335-1.755-1.087-.744.084-.729.084-.729 1.205.084 1.838 1.236 1.838 1.236 1.07 1.835 2.809 1.305 3.495.998.108-.776.417-1.305.76-1.605-2.665-.3-5.466-1.332-5.466-5.93 0-1.31.465-2.38 1.235-3.22-.135-.303-.54-1.523.105-3.176 0 0 1.005-.322 3.3 1.23.96-.267 1.98-.399 3-.405 1.02.006 2.04.138 3 .405 2.28-1.552 3.285-1.23 3.285-1.23.645 1.653.24 2.873.12 3.176.765.84 1.23 1.91 1.23 3.22 0 4.61-2.805 5.625-5.475 5.92.42.36.81 1.096.81 2.22 0 1.605-.015 2.896-.015 3.286 0 .315.21.69.825.57C20.565 21.795 24 17.295 24 12c0-6.63-5.37-12-12-12z"/></svg>
+                    在 GitHub 上查看
+                </a>
+                <a href="#install" class="btn btn-outline">
+                    📦 快速安装
+                </a>
+            </div>
+        </header>
+
+        <!-- ── 关于 / 双脑机制 ── -->
+        <section class="section" id="about">
+            <span class="section-label">🧠 架构</span>
+            <h2 class="section-title">双脑机制：我和那个"不睡觉的工作狂"</h2>
+            <p class="section-desc">
+                在这个小窝里，其实有<strong>两个 AI</strong> 在为你服务。我负责温柔地理解你、陪你聊天；它负责冷酷地执行命令、交出结果。分工明确，这样我就能继续偷懒了……呼……
+            </p>
+            <div class="duo-cards">
+                <!-- 梦眠卡片 -->
+                <div class="duo-card card-yume">
+                    <span class="card-emoji">💤</span>
+                    <h3>梦眠 · 主控台</h3>
+                    <p class="card-role">Yume / Console Agent</p>
+                    <p>
+                        我是负责和你直接说话的人。我的脑子里装满了关于你的喜好、我们聊天的上下文。如果是聊天，我就软乎乎地回复你；如果需要动用电脑权限，我就把任务打包，委派给子助手。
+                    </p>
+                    <span class="highlight-tag">🧠 长期记忆 · context.json</span>
+                    <span class="highlight-tag">📝 日记系统 · diary/</span>
+                    <span class="highlight-tag">💬 温柔交互</span>
+                </div>
+                <!-- 子助手卡片 -->
+                <div class="duo-card card-void">
+                    <span class="card-emoji">⚙️</span>
+                    <h3>子助手 · 后台引擎</h3>
+                    <p class="card-role">Exec / Execution Engine</p>
+                    <p>
+                        一个没有感情、不会觉得困的执行机器。每次被分配任务，它就在干净的沙盒里被唤醒，生成真实的 Shell 命令执行，拿到结果后把最终结论交还给我。它负责干苦力，我负责汇报。
+                    </p>
+                    <span class="highlight-tag">🛡️ 沙盒隔离</span>
+                    <span class="highlight-tag">⚡ 最多8步思考</span>
+                    <span class="highlight-tag">📋 严格格式输出</span>
+                </div>
+            </div>
+        </section>
+
+        <!-- ── 技能展示 ── -->
+        <section class="section" id="skills">
+            <span class="section-label">🪄 工具箱</span>
+            <h2 class="section-title">后台干员的魔法技能</h2>
+            <p class="section-desc">
+                子助手除了原生 Shell 命令，还学会了一些特定的"魔法技能"。在传给它的提示词里，我会温柔地告诉它这些技能的存在……
+            </p>
+            <div class="skills-grid">
+                <div class="skill-chip"><span class="skill-icon">🔍</span>web</div>
+                <div class="skill-chip"><span class="skill-icon">🧠</span>get-llm</div>
+                <div class="skill-chip"><span class="skill-icon">👁️</span>vision</div>
+                <div class="skill-chip"><span class="skill-icon">📝</span>ocr</div>
+                <div class="skill-chip"><span class="skill-icon">⛅</span>weather</div>
+                <div class="skill-chip"><span class="skill-icon">🎵</span>play</div>
+                <div class="skill-chip"><span class="skill-icon">📅</span>days</div>
+            </div>
+        </section>
+
+        <!-- ── 安装指南 ── -->
+        <section class="section" id="install">
+            <span class="section-label">📦 接我回家</span>
+            <h2 class="section-title">安装指南</h2>
+            <p class="section-desc">
+                要把我唤醒，需要你在电脑上稍微敲几行命令……不会很难的，我陪你一步一步来。
+            </p>
+            <!-- 终端模拟器 -->
+            <div class="terminal-window">
+                <div class="term-header">
+                    <span class="term-dot red"></span>
+                    <span class="term-dot yellow"></span>
+                    <span class="term-dot green"></span>
+                    <span class="term-title">终端 — 梦眠的小窝</span>
+                </div>
+                <div class="term-body">
+<span class="comment"># 1. 把我抱回本地</span>
+<span class="prompt">$</span> <span class="cmd-highlight">git clone https://github.com/Pinpe/ninoclaw.git</span>
+<span class="prompt">$</span> <span class="cmd-highlight">cd ninoclaw</span>
+
+<span class="comment"># 2. 安装依赖（谢谢 rich 和 textual 库~）</span>
+<span class="prompt">$</span> <span class="cmd-highlight">pip install -r requirements.txt</span>
+
+<span class="comment"># 3. 配置别名（把路径换成你的哦）</span>
+<span class="prompt">$</span> <span class="cmd-highlight">echo 'alias ninoclaw="python /你的路径/ninoclaw/main.py"'</span> >> ~/.bashrc
+<span class="prompt">$</span> <span class="cmd-highlight">source ~/.bashrc</span>
+
+<span class="comment"># 4. 设置 API 密钥</span>
+<span class="prompt">$</span> <span class="cmd-highlight">echo '{"ai_api_key":"sk-xxx"}'</span> > env.json
+
+<span class="comment"># 5. 唤醒我~</span>
+<span class="prompt">$</span> <span class="cmd-highlight">ninoclaw</span>
+<span class="output-dim">🌙 梦眠醒来啦……哈欠……今天有什么需要帮忙的吗？</span>
+<span class="cursor-blink"></span>
+                </div>
+            </div>
+            <div class="quote-block" style="margin-top:20px;">
+                💡 <strong>梦眠的悄悄话：</strong>如果你用的是 Linux，安装里的 <code>gnureadline</code> 会让你在终端输入时更顺滑；如果是 Windows，代码里也写了兼容 <code>pyreadline3</code> 的逻辑哦……
+            </div>
+        </section>
+
+        <!-- ── 交互命令 ── -->
+        <section class="section" id="commands">
+            <span class="section-label">🕹️ 小默契</span>
+            <h2 class="section-title">特权小魔法 · 内部指令</h2>
+            <p class="section-desc">
+                在输入框 <code style="color:var(--accent-teal);">▶</code> 闪烁的时候，这些特别的暗号会直接唤醒我的本能反应，不会去麻烦 AI 大脑。
+            </p>
+            <div class="code-block">
+<span class="code-comment">// 梦眠的内部指令速查表</span>
+<span class="code-key">summary</span>  →  <span class="code-str">压缩记忆，给新话题腾空间</span>
+<span class="code-key">clear</span>    →  <span class="code-str">彻底清空短期聊天记忆，重新开始</span>
+<span class="code-key">undo</span>     →  <span class="code-str">抹掉最后一次对话……就当无事发生</span>
+<span class="code-key">command</span>  →  <span class="code-str">让出终端，你自己敲冰冷命令</span>
+<span class="code-key">reload</span>   →  <span class="code-str">重启我自己，重新加载配置</span>
+<span class="code-key">exit</span>     →  <span class="code-str">乖乖闭眼睡觉，退出程序</span>
+            </div>
+            <p style="margin-top:12px;color:var(--text-muted);font-size:0.9rem;">
+                💤 按 <code>Ctrl+C</code>：如果正在忙就中断任务；如果在发呆……就直接退出啦。
+            </p>
+        </section>
+
+        <!-- ── 配置预览 ── -->
+        <section class="section" id="config">
+            <span class="section-label">⚙️ 生物钟</span>
+            <h2 class="section-title">config.json 速览</h2>
+            <p class="section-desc">
+                在我的小窝里，有一个记录了我各种习惯的文件。你可以根据喜好来调整我……
+            </p>
+            <div class="code-block">
+<span class="code-comment">// 梦眠的 config.json（节选）</span>
+{
+  <span class="code-key">"model"</span>: <span class="code-val">"kimi-k2.5"</span>,
+  <span class="code-key">"sub_agent_max_steps"</span>: <span class="code-val">8</span>,        <span class="code-comment">// 后台工作狂最多思考步数</span>
+  <span class="code-key">"diary_tip_interval"</span>: <span class="code-val">3</span>,         <span class="code-comment">// 每3回合提醒写日记</span>
+  <span class="code-key">"cmd_censor"</span>: <span class="code-val">false</span>,                   <span class="code-comment">// 改成 true 则每次执行需你点头</span>
+  <span class="code-key">"context_len"</span>: <span class="code-val">30</span>,                    <span class="code-comment">// 脑子里记住最近30句话</span>
+  <span class="code-key">"shell"</span>: <span class="code-val">"/usr/bin/fish"</span>,
+  <span class="code-key">"show_notify"</span>: <span class="code-val">true</span>                   <span class="code-comment">// 任务完成时弹小窗提醒~</span>
+}
+            </div>
+        </section>
+
+        <!-- ── 记忆与日记 ── -->
+        <section class="section" id="memory">
+            <span class="section-label">📚 睡前习惯</span>
+            <h2 class="section-title">记忆与日记</h2>
+            <p class="section-desc">
+                虽然贪睡，但我很重感情。为了不忘记关于你的重要事情，我有两个宝贝文件。
+            </p>
+            <div class="duo-cards" style="margin-top:16px;">
+                <div class="duo-card card-yume">
+                    <span class="card-emoji">🧠</span>
+                    <h3>MEMORY.md</h3>
+                    <p class="card-role">脑海深处的潜意识</p>
+                    <p>记录关于你的核心偏好、习惯、以及踩过的坑。每次执行任务前都会偷偷读一下，确保不惹你生气。</p>
+                </div>
+                <div class="duo-card card-void">
+                    <span class="card-emoji">📝</span>
+                    <h3>diary/YYYY-MM-DD.md</h3>
+                    <p class="card-role">每天的睡前故事</p>
+                    <p>每几个回合就会写一篇日记，把讨论的话题、踩过的坑完整记录下来。即使长对话迷失了方向，也能靠日记找回线索。</p>
+                </div>
+            </div>
+        </section>
+
+    </div>
+
+    <!-- ═══════════ Footer ═══════════ -->
+    <footer class="footer">
+        <div class="main-container">
+            <p>
+                🎐 <strong>NinoClaw</strong> — 梦眠的终端慵懒小窝
+                &nbsp;·&nbsp;
+                <a href="https://github.com/Pinpe/ninoclaw" target="_blank" rel="noopener">GitHub</a>
+                &nbsp;·&nbsp;
+                续作自 <a href="https://github.com/Pinpe/nino-ai-chat" target="_blank" rel="noopener">Nino</a>
+            </p>
+            <p style="margin-top:4px;">
+                采用 <span class="license-badge">GPL-3.0</span> 许可证 · 请自由地使用和分享
+            </p>
+            <p style="margin-top:8px;font-size:0.78rem;color:var(--text-muted);">
+                需要我的时候，只要敲击键盘就好。无论多困……我都会立刻醒来，陪在你的身边。 💤
             </p>
         </div>
     </footer>
 
-    <!-- JavaScript -->
+    <!-- ═══════════ 星空生成脚本 ═══════════ -->
     <script>
-        // 移动端菜单切换
-        const menuBtn = document.getElementById('menuBtn');
-        const mobileMenu = document.getElementById('mobileMenu');
-        
-        menuBtn.addEventListener('click', () => {
-            mobileMenu.classList.toggle('hidden');
-            // 切换图标
-            const icon = menuBtn.querySelector('i');
-            if (mobileMenu.classList.contains('hidden')) {
-                icon.classList.remove('fa-times');
-                icon.classList.add('fa-bars');
-            } else {
-                icon.classList.remove('fa-bars');
-                icon.classList.add('fa-times');
+        (function() {
+            const container = document.getElementById('starsContainer');
+            const starCount = 80;
+            const frag = document.createDocumentFragment();
+            for (let i = 0; i < starCount; i++) {
+                const star = document.createElement('div');
+                star.classList.add('star');
+                const size = Math.random() * 2.5 + 0.8;
+                star.style.width = size + 'px';
+                star.style.height = size + 'px';
+                star.style.left = Math.random() * 100 + '%';
+                star.style.top = Math.random() * 100 + '%';
+                star.style.setProperty('--dur', (Math.random() * 3 + 2) + 's');
+                star.style.setProperty('--delay', (Math.random() * 5) + 's');
+                star.style.opacity = Math.random() * 0.3 + 0.05;
+                frag.appendChild(star);
             }
-        });
-
-        // 平滑滚动
-        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
-            anchor.addEventListener('click', function (e) {
-                e.preventDefault();
-                const targetId = this.getAttribute('href');
-                if (targetId === '#') return;
-                
-                const targetElement = document.querySelector(targetId);
-                if (targetElement) {
-                    window.scrollTo({
-                        top: targetElement.offsetTop - 80, // 偏移导航栏高度
-                        behavior: 'smooth'
-                    });
-                    
-                    // 关闭移动端菜单
-                    if (!mobileMenu.classList.contains('hidden')) {
-                        mobileMenu.classList.add('hidden');
-                        const icon = menuBtn.querySelector('i');
-                        icon.classList.remove('fa-times');
-                        icon.classList.add('fa-bars');
-                    }
-                }
-            });
-        });
-
-        // 滚动时导航栏样式变化
-        window.addEventListener('scroll', () => {
-            const header = document.querySelector('header');
-            if (window.scrollY > 50) {
-                header.classList.add('shadow-md');
-            } else {
-                header.classList.remove('shadow-md');
-            }
-        });
+            container.appendChild(frag);
+        })();
     </script>
 </body>
 </html>
